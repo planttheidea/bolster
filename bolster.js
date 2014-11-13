@@ -426,6 +426,14 @@
 				return attachEvent;
 			}
 			
+			function prv_getAudio(){
+				return {
+					mp3:audioMP3,
+					mp4:audioMP4,
+					ogg:audioOGG
+				};
+			}
+			
 			function prv_getAudioMP3(){
 				return audioMP3;
 			}
@@ -535,6 +543,13 @@
 				return indexedDB;
 			}
 			
+			function prv_getGradient(){
+				return {
+					linear:linearGradient,
+					radial:radialGradient
+				};
+			}
+			
 			function prv_getLinearGradient(){
 				return linearGradient;
 			}
@@ -592,6 +607,13 @@
 				return smil;
 			}
 			
+			function prv_getStorage(){
+				return {
+					local:localStorage,
+					session:sessionStorage
+				};
+			}
+			
 			function prv_getSvg(){
 				return svg;
 			}
@@ -604,12 +626,27 @@
 				return touchEvents;
 			}
 			
+			function prv_getTransform(){
+				return {
+					twoD:transform2d,
+					threeD:transform3d
+				}
+			}
+			
 			function prv_getTransform2d(){
 				return transform2d;
 			}
 			
 			function prv_getTransform3d(){
 				return transform3d;
+			}
+			
+			function prv_getVideo(){
+				return {
+					mp4:videoMP4,
+					ogg:videoOGG,
+					webM:videoWebM
+				};
 			}
 			
 			function prv_getVideoMP4(){
@@ -635,6 +672,7 @@
 			return {
 				applicationCache:prv_getApplicationCache,
 				attachEvent:prv_getAttachEvent,
+				audio:prv_getAudio,
 				audioMP3:prv_getAudioMP3,
 				audioMP4:prv_getAudioMP4,
 				audioOGG:prv_getAudioOGG,
@@ -650,6 +688,7 @@
 				flexbox:prv_getFlexbox,
 				geolocation:prv_getGeolocation,
 				getElementsByClassName:prv_getGetElementsByClassName,
+				gradient:prv_getGradient,
 				hashchange:prv_getHashchange,
 				history:prv_getHistory,
 				hsla:prv_getHsla,
@@ -667,11 +706,14 @@
 				rgba:prv_getRgba,
 				sessionStorage:prv_getSessionStorage,
 				smil:prv_getSmil,
+				storage:prv_getStorage,
 				svg:prv_getSvg,
 				textShadow:prv_getTextShadow,
 				touchEvents:prv_getTouchEvents,
+				transform:prv_getTransform,
 				transform2d:prv_getTransform2d,
 				transform3d:prv_getTransform3d,
+				video:prv_getVideo,
 				videoMP4:prv_getVideoMP4,
 				videoOGG:prv_getVideoOGG,
 				videoWebM:prv_getVideoWebM,
