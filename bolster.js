@@ -706,12 +706,14 @@
 			}
 			
 			function prv_unsubscribe(unsubscribeObj){
-				if(unsubscribeObj.token > 0){
+				var token = IDs[subscribeObj.name];
+				
+				if(token > 0){
 					for(var m in topics){
 						if(topics[m]){
 							for (var i = topics[m].length; i--;) {			
-								if(topics[m][i].token === unsubscribeObj.token){
-									IDs[unsubscribeObj.name] = undefined;									
+								if(topics[m][i].token === token){
+									delete IDs[unsubscribeObj.name];									
 									topics[m].splice(i,1);
 								}
 							}
@@ -978,6 +980,7 @@
 					
 					break;
 			}
+			
 		}
 	});
 })(window,document,jQuery);
