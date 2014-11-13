@@ -924,6 +924,11 @@
 	});
 	
 	$.fn.extend({
+		active:function(cls){
+			cls = cls || 'active';
+			
+			return this.hasClass(cls);
+		},
 		activate:function(cls,parent){
 			cls = cls || 'active';
 			
@@ -972,11 +977,6 @@
 					pluginFuncs.loadImg(this,i,len,callback);
 				});
 			}
-		},
-		isActive:function(cls){
-			cls = cls || 'active';
-			
-			return this.hasClass(cls);
 		},
 		unselectable:function(allowChildren){
 			var $nodes = (allowChildren ? this : this.add($self.find('*')));
