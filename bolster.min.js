@@ -1,7 +1,7 @@
 /*
  *
  * Copyright 2014 Tony Quetano under the terms of the MIT
- * license found at https://github.com/planttheidea/bolster/master/LICENSE
+ * license found at https://github.com/planttheidea/bolster/MIT_License.txt
  *
  * Bolster.js - An augmentation library for jQuery
  *
