@@ -264,7 +264,18 @@ $('.ActiveWithParent').activate('ActiveChild','.ParentOfChild');
 // class of "ActiveChild" added to .ActiveWithParent
 ```
 
-**$(selector).deactive()**
+**$(selector).active()**
+
+Test if object is considered "active", denoted by classes used in the *activate* method, returning a boolean value. To execute the method, you can pass in the following parameters:
++ class to denote "active" status *(string, optional)*
+
+Example:
+```html
+var simpleActive = $('.SimpleActive').active(), // checks if has "active" class
+    specificActive = $('li').active('SpecificActive'); // checks if has "SpecificActive" class
+```
+
+**$(selector).deactivate()**
 
 Set object to be "inactive", denoted by a class removed from each element in the object. To execute the method, you can pass in the following parameters:
 + class to denote "active" status *(string, optional)*
@@ -300,17 +311,6 @@ $('img').imgLoad(function(percent){
   $('.LoadingSpan').text(percent + '%');
 },50);
 // delay is in milliseconds
-```
-
-**$(selector).isActive()**
-
-Test if object is considered "active", denoted by classes used in the *activate* method, returning a boolean value. To execute the method, you can pass in the following parameters:
-+ class to denote "active" status *(string, optional)*
-
-Example:
-```html
-var simpleActive = $('.SimpleActive').isActive(), // checks if has "active" class
-    specificActive = $('li').isActive('SpecificActive'); // checks if has "SpecificActive" class
 ```
 
 **$(selector).unselectable()**
