@@ -25,7 +25,7 @@ jQuery is a wonderful, magical, omnipresent library that makes the lives of most
   + Setting attributes to not be selectable
   + Removing inline styling
 
-### Methods
+### $ Methods
 
 **$.publish**
 
@@ -79,6 +79,15 @@ $.subscribe({
   }
 });
 ```
+
+Built-in topics:
++ windowSize
+  + data provided is object with the following values:
+    + width *(window width)*
+    + height *(window height)*
++ windowScroll
+  + data provided is object with the following values:
+    + scrollTop *(scrollTOp relative to top of document)*
 
 **$.unsubscribe**
 
@@ -211,3 +220,27 @@ if($.supports('video').mp4){
   // do MP4 video stuff
 }
 ```
+
+**$.window**
+
+Provide window-specific attribute, based on the parameter passed. To execute the method, pas in the string value of the attribute. The following parameters can be passed:
++ width
++ height
++ scrollTop
++ dimensions
+  + returns object with the following values:
+    + width
+    + height
+
+Example:
+```html
+var dims = $.window('dimensions');
+
+if((dims.width > 100) && ($.window('scrollTop') > 300)){
+  // do some wacky window stuff
+}
+```
+
+### $(selector) methods
+
+Coming soon
