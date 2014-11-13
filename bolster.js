@@ -1,3 +1,17 @@
+/*
+ *
+ * Copyright 2014 Tony Quetano under the terms of the MIT
+ * license found at https://github.com/planttheidea/bolster/master/LICENSE
+ *
+ * Bolster.js - An augmentation library for jQuery
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*/
 (function(window,document,$){
 	var supports = (function(){
 			var testElement = {
