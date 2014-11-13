@@ -10,8 +10,8 @@ jQuery is a wonderful, magical, omnipresent library that makes the lives of most
 ### Size
 
 + Uncompressed: 23.06KB
-+ Minified: 9.72KB
-+ Minified and gzipped: 3.52KB
++ Minified: 9.74KB
++ Minified and gzipped: 3.53KB
 
 ### Components
 
@@ -65,18 +65,24 @@ Subscribe to a topic, so that a specific function you pass in will be executed u
 Example:
 ```html
 $.subscribe({
-  topic:'divClick',
-  // topic:['divClick','windowSize'],
+  // topic:'divClick',
+  topic:['divClick','windowSize'],
   name:'getDivDimensions',
   fn:function(data,topic){
-    console.log(data); // result: {height:100,width:200}
-    console.log(topic); // result: divClick
+    if(data.width > 200){
+      // do large width stuff
+    }
+    
+    if(topic === 'divClick'){
+      // do divClick specific stuff
+    }
   }
 });
+```
 
 **$.unsubscribe**
 
-Remove subscription(s) to a topic based on subscription name passed in. To execute the method, a single object is passed in with the following components:y
+Remove subscription(s) to a topic based on subscription name passed in. To execute the method, a single object is passed in with the following components:
 + name *(string, required)*
   + Unique name of subscription
 
@@ -85,4 +91,123 @@ Example:
 $.unsubscribe({
   name:'getDivDimensions'
 });
+```
+
+**$.supports**
+
+Check if browser supports a specific feature, and there are many features that are tested. To execute the method, pass in the string value for the feature. Features tested (returns boolean value, unless specified):
++ applicationCache *(HTML5 Application Cache API)*
++ attachEvent *(proprietary legacy IE event-to-function assignment)*
++ audio *(HTML5 audio element)*
+  + returns object with boolean values for
+    + mp3
+    + mp4
+    + ogg
++ audioMP3 *(audio type MP3)*
++ audioMP4 *(audio type MP4)*
++ audioOGG *(audio type OGG)*
++ boxShadow *(CSS3 box-shadow property)*
++ canvas *(HTML5 canvas element)*
++ classList *(classList attribute of element)*
++ cssAnimation *(CSS3 animations)*
++ cssColumn *(CSS3 columns)*
++ cssReflection *(CSS3 reflections)*
++ cssStylesheet *(HTML5 styleSheet attribute)*
++ customEvent *(CustomEvent creation)*
++ dragAndDrop *(HTML5 draggable / droppable attributes)*
++ eventListener *(modern event-to-function assignment)*
++ flexbox *(CSS3 new display type of flex)*
++ geolocation *(HTML5 Geolocation API)*
++ getElementsByClassName *(getElementsByClassName method)*
++ gradient *(CSS3 gradient background type)*
+  + returns object with boolean values for:
+    + linear
+    + radial
++ hashchange *(HTML5 hashchange event)*
++ history *(HTML5 History API)*
++ hsla *(CSS3 HSLA colors)*
++ html5Attribute *(HTML5 attributes)*
+  + returns object with boolean values for:
+    + autocomplete
+    + autofocus
+    + list
+    + max
+    + min
+    + multiple
+    + pattern
+    + placeholder
+    + required
+    + step
++ html5Input *(HTML5 new input element types)*
+  + returns object with boolean values for:
+    + color
+    + date
+    + dateTime
+    + dateTimeLocal
+    + email
+    + month
+    + number
+    + range
+    + search
+    + tel
+    + time
+    + url
+    + week
++ indexedDB *(HTML5 IndexedDB API)*
++ linearGradien *(CSS3 Linear Gradient)*
++ localStorage *(HTML5 localStorage API)*
++ mediaQueries *(CSS3 Media Queries)*
++ pageOffset *(pageYOffset and pageXOffset)*
++ postMessage *(onmessage event)*
++ pseudoClass *(Pseudo-class selectors)*
+  + returns object with boolean values for:
+    + active
+    + after
+    + before
+    + focus
+    + hover
+    + link
+    + visited
++ pseudoElement *(CSS3 Pseudo-element selectors)*
+  + returns object with boolean values for:
+    + after
+    + before
+    + firstLetter
+    + firstLine
++ rgba *(CSS3 RGBA colors)*
++ sessionStorage *(HTML5 sessionStorage API)*
++ smil *(HTML5 SMIL)*
++ storage *(HTML5 localStorage and SessionStorage)*
+  + returns object with boolean values for:
+    + local
+    + session
++ svg *(HTML5 SVG element type)*
++ textShadow *(CSS3 text-shadow property)*
++ touchEvents *(touch events)*
++ transform *(CSS3 transforms)*
+  + returns object with boolean values for:
+    + twoD
+    + threeD
++ transform2d *(CSS3 2D Transforms)*
++ transform3d *(CSS3 3D Transforms)*
++ video *(HTML5 video element type)*
+  + returns object with boolean values for:
+    + mp4
+    + ogg
+    + webM
++ videoMP4 *(video type MP4)*
++ videoOGG *(video type OGG)*
++ videoWebM *(video type WebM)*
++ webGL *(HTML5 WebGL / 3D Canvas)*
++ webSocket *(HTML5 Web Sockets API)*
+
+Example:
+```html
+if($.supports('webSocket')){
+  // do Web Socket stuff
+}
+
+if($.supports('video').mp4){
+  // do MP4 video stuff
+}
 ```
