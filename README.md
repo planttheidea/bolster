@@ -27,7 +27,7 @@ jQuery is a wonderful, magical, omnipresent library that makes the lives of most
 
 ### $ Methods
 
-**$.publish**
+**$.publish()**
 
 Publish a topic, usually upon some other event. This topic can be subscribed to by an unlimited number of objects. To execute the method, a single object is passed in with the following components:
 + topic *(string, required)*
@@ -51,7 +51,7 @@ $('div').on('click',function(){
 });
 ```
 
-**$.subscribe**
+**$.subscribe()**
 
 Subscribe to a topic, so that a specific function you pass in will be executed upon each publishing of that topic. To execute the method, a single object is passed in with the following components:
 + topic *(string / array, required)*
@@ -80,7 +80,7 @@ $.subscribe({
 });
 ```
 
-Built-in topics:
+Built-in published topics:
 + windowSize
   + data provided is object with the following values:
     + width *(window width)*
@@ -89,7 +89,7 @@ Built-in topics:
   + data provided is object with the following values:
     + scrollTop *(scrollTOp relative to top of document)*
 
-**$.unsubscribe**
+**$.unsubscribe()**
 
 Remove subscription(s) to a topic based on subscription name passed in. To execute the method, a single object is passed in with the following components:
 + name *(string, required)*
@@ -102,9 +102,9 @@ $.unsubscribe({
 });
 ```
 
-**$.supports**
+**$.supports()**
 
-Check if browser supports a specific feature, and there are many features that are tested. To execute the method, pass in the string value for the feature. Features tested (returns boolean value, unless specified):
+Check if browser supports a specific feature, and there are many features that are tested. To execute the method, pass in the string value for the feature (a parameter is always required). Features tested (returns boolean value, unless specified):
 + applicationCache *(HTML5 Application Cache API)*
 + attachEvent *(proprietary legacy IE event-to-function assignment)*
 + audio *(HTML5 audio element)*
@@ -221,9 +221,9 @@ if($.supports('video').mp4){
 }
 ```
 
-**$.window**
+**$.window()**
 
-Provide window-specific attribute, based on the parameter passed. To execute the method, pas in the string value of the attribute. The following parameters can be passed:
+Provide window-specific attribute, based on the parameter passed. To execute the method, pass in the string value of the attribute (a parameter is always required). The following parameters can be passed:
 + width
 + height
 + scrollTop
@@ -243,4 +243,115 @@ if((dims.width > 100) && ($.window('scrollTop') > 300)){
 
 ### $(selector) methods
 
-Coming soon
+**$(selector).activate()**
+
+Set object to be "active", denoted by a class added to each element in the object. To execute the method, you can pass in the following parameters:
++ class to denote "active" status *(string, optional)*
++ parent selector of active element *(string, optional but requires class to be passed in to use)*
+
+Examples:
+```html
+$('.SimpleActive').activate(); 
+// all children of .SimpleActive's parent have class of "active" removed
+// class of "active" is added to .SimpleActive
+
+$('.ActiveSpecific').activate('SpecificActive'); 
+// all children of .SpecificActive's parent have class of "SpecificActive" removed
+// class of "SpecificActive" is added to .ActiveSpecific
+
+$('.ActiveWithParent').activate('ActiveChild','.ParentOfChild');
+// all children of .ActiveChild's ancestor of .ParentOfChild have class of "ActiveChild" removed
+// class of "ActiveChild" added to .ActiveWithParent
+```
+
+**$(selector).deactive()**
+
+Set object to be "inactive", denoted by a class removed from each element in the object. To execute the method, you can pass in the following parameters:
++ class to denote "active" status *(string, optional)*
++ parent selector of active element *(string, optional but requires class to be passed in to use)*
+
+Examples:
+```html
+$('.SimpleActive').deactivate();
+// all children of .SimpleActive's parent have class of "active" removed
+
+$('.ActiveSpecific').deactivate('SpecificActive'); 
+// all children of .SpecificActive's parent have class of "SpecificActive" removed
+
+$('.ActiveWithParent').deactivate('ActiveChild','.ParentOfChild');
+// all children of .ActiveChild's ancestor of .ParentOfChild have class of "ActiveChild" removed
+```
+
+**$(selector).imgLoad()**
+
+Execute callback function upon the completion of loading for each image in the object. To execute the method, you can pass in the following parameters:
++ function to execute upon image loaded *(function, required)*
++ delay with which to process the callback of each image in the object *(integer, optional)*
+
+Examples:
+```html
+$('img').imgLoad(function(percent){
+  if(percent === 100){
+    // all images loaded
+  }
+});
+
+$('img').imgLoad(function(percent){
+  $('.LoadingSpan').text(percent + '%');
+},50);
+// delay is in milliseconds
+```
+
+**$(selector).isActive()**
+
+Test if object is considered "active", denoted by classes used in the *activate* method, returning a boolean value. To execute the method, you can pass in the following parameters:
++ class to denote "active" status *(string, optional)*
+
+Example:
+```html
+var simpleActive = $('.SimpleActive').isActive(), // checks if has "active" class
+    specificActive = $('li').isActive('SpecificActive'); // checks if has "SpecificActive" class
+```
+
+**$(selector).unselectable()**
+
+Apply CSS- and attribute-based values to prevent item from being selectable by mouse. To execute the method, you can pass in the following parameters:
++ boolean value, to determine if children should be selectable *(boolean, optional with default of false)*
+
+Example:
+```html
+$('.NoSelect').unselectable();
+// it, and all its children, are unselectable
+
+$('.NoSelectOnlyMe').unselectable(true);
+// it is unselectable, but children remain selectable
+```
+
+**$(selector).unstyle()**
+
+Remove inline styling applied with *css* method (native to jQuery). To execute the method, you can pass in the following parameters:
++ style(s) to be removed *(string / array, optional)*
+  + if multiple styles are to be removed, pass array with string values for each to remove
+
+Examples:
+```html
+$(.NoStyle).unstyle();
+// removes all inline styles
+
+$('.NoBackgroundColor').unstyle('background-color');
+// removes only background-color applied inline
+
+$('.NoColors').unstyle(['background-color','color']);
+// removes both background-color and color applied inline
+```
+
+### Future goals
+
+While the scope of this will remain small, there are a few points of expansion I hope to eventually target:
++ Promise functionality
++ Expansion of window attributes
++ Expansion of feature detection
++ More built-in published topics
++ Any recommendations
+
+Enjoy!
