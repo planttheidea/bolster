@@ -989,7 +989,7 @@
 						throwError(errors.badParam);
 					}
 				},
-				run:function(onResolution,onRejection){
+				proceed:function(onResolution,onRejection){
 					this.push(onResolution,onRejection);     
 					return this;
 				},
@@ -1005,17 +1005,10 @@
 			
 			$.extend({
 				pledge:function(fn){
-					switch($.type(fn)){
-						case 'function':
-							return (new Pledge()).start(fn);
-							break;
-						case 'undefined':
-							return new Pledge();
-							break;
-						default:
-							throwError(errors.badParam);
-							return this;
-							break;
+					if($.type(fn) === 'function'){
+						return (new Pledge()).start(fn);
+					} else {
+						throwError(errors.badParam);
 					}
 				}
 			});
