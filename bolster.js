@@ -1011,8 +1011,8 @@
 						},onRejection);
 														   
 						return this;
-					} else {nit
-						this.i();
+					} else {
+						this.init();
 						throwError(errors.badParam);
 					}
 				},
