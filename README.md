@@ -19,6 +19,7 @@ jQuery is a wonderful, magical, omnipresent library that makes the lives of most
   + Publish / Subscribe
   + Feature detection
   + Window values
+  + Promises
 + $(selector) methods
   + Setting / removing / detecting "active" elements
   + Completion of image loading
