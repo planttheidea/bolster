@@ -889,7 +889,7 @@
 		pledge = (function(){
 			var errors = {
 					badParam:'Parameter passed is not a valid type for this method.',
-					resolveEqualReject:'The length of resolve functions does not equal the length of reject functions.'
+					testFailed:'Test did not pass.'
 				},
 				Pledge = function(){
 					this.init = function(){
@@ -908,7 +908,7 @@
 						}
 					};
 
-					this.reject = function(e){					
+					this.reject = function(e){	
 						this.cuid++;
 
 						if(this.rejected[this.cuid]){
@@ -929,7 +929,7 @@
 							this.rejected[this.puid] = onRejection;
 						} else {
 							this.rejected[this.puid] = function(e){
-								throwError('Rejected: '+ e);
+								throwError('Rejected: ' + (e || ''));
 							};
 						}
 					};
@@ -955,13 +955,11 @@
 						return (new Pledge()).start(function(){
 							var p = this;
 							
-							window.setTimeout(function(){
-								if(self.resolvePostpone) {
-									p.resolve(self.resolveData);
-								} else if(rejectMe) {
-									p.reject(self.rejectData);
-								}
-							},0);
+							if(self.resolvePostpone) {
+								p.resolve(self.resolveData);
+							} else if(self.rejectPostpone) {
+								p.reject(self.rejectData);
+							}
 						});
 					};
 				};
@@ -974,61 +972,85 @@
 					var isArray = ($.type(onRejections) === 'array'),
 						len = onResolutions.length;
 					
-					if(!isArray || (isArray && (len === onRejections.length))){
-						for(var i = 0, len = onResolutions.length; i < len; i++){
-							if(isArray){
-								this.push(onResolutions[i], onRejections[i]);
-							} else {
-								this.push(onResolutions[i], onRejection);
-							}
+					for(var i = 0, len = onResolutions.length; i < len; i++){
+						if(isArray){
+							this.push(onResolutions[i], onRejections[i]);
+						} else {
+							this.push(onResolutions[i], onRejections);
 						}
-						
-						return this;
-					} else if(isArray) {
-						this.init();                
-						throwError(errors.resolveEqualReject);
 					}
+						
+					return this;
 				},
 				concurrent:function(onResolutions,onRejection){
 					if(($.type(onRejection) === 'undefined') || ($.type(onRejection) === 'function')){
 						var len = onResolutions.length,
 							finished = [];
 						
-						this.push(function(data){
-							var self = this;
-							
-							for(var i = onResolutions.length; i--;){                    
-								(new Pledge()).start(function(){
-									onResolutions[i].call(this,data);
-								}).complete(function(newData){
-									finished.push(newData);
-									
-									if(finished.length === len){
-										self.resolve(finished);
-									}
-								});
+						function newPledge(fn,self,data){                        
+							(new Pledge()).start(function(){
+								fn.call(this,data);
+							}).complete(function(newData){
+								finished.push(newData);
+								
+								if(finished.length === len){
+									self.resolve(finished);
+								}
+							});
+						}
+						
+						return this.proceed(function(data){
+							for(var i = onResolutions.length; i--;){
+								newPledge(onResolutions[i],this,data);
 							}
 						},onRejection);
-														   
-						return this;
 					} else {
 						this.init();
 						throwError(errors.badParam);
 					}
 				},
 				proceed:function(onResolution,onRejection){
-					this.push(onResolution,onRejection);     
+					this.push(onResolution, onRejection);     
 					return this;
 				},
 				start:function(fn){
 					if($.type(fn) === 'function'){
-						fn.call(this);
+						var self = this;
+						
+						window.setTimeout(function(){
+							fn.call(self);
+						},0);
+						
+						return self;
+					}
+				},
+				wait:function(delay,test){
+					var self = this,
+						testResult;
+					
+					switch($.type(test)){
+						case 'boolean':
+							testResult = test;
+							break;
+						case 'function':
+							testResult = test();
+							break;
+						default:
+							testResult = true;
+							break;
 					}
 					
-					return this;
+					return self.proceed(function(data){
+						window.setTimeout(function(){
+							if(testResult){
+								self.resolve.call(self,data);
+							} else {
+								self.reject.call(self,errors.testFailed);
+							}
+						},delay);
+					});
 				}
-				
-			}
+			};
 			
 			$.extend({
 				pledge:function(fn){
