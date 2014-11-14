@@ -938,7 +938,7 @@
 					
 					return this;
 				},
-				Defer = function(){
+				Postpone = function(){
 					var self = this;
 					
 					this.resolve = function(resolutionData){
@@ -1038,8 +1038,8 @@
 						throwError(errors.badParam);
 					}
 				},
-				defer:function(){
-					return new Defer();
+				postpone:function(){
+					return new Postpone();
 				}
 			});
 		})(),
