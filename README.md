@@ -241,6 +241,58 @@ if((dims.width > 100) && ($.window('scrollTop') > 300)){
 }
 ```
 
+**$.pledge()**
+
+Provide basic promise functionality, allowing for conversion of function execution to become asynchronous. To execute the method, pass in the first function in the chain.
+
+Examples:
+```html
+$.pledge(function(){
+  var self = this;
+  // capture this, because it changes inside setTimeout
+
+  window.setTimeout(function(){
+    console.log('delayed return');
+    self.resolve('Data from first');
+  },1000);
+}).proceed(function(data){
+  console.log(data);
+  // logs "Data from first"
+  
+  this.resolve('Data from second');
+}).complete(function(data){
+  console.log(data);
+  // logs "Data from second"
+
+  window.setTimeout(function(){
+    console.log('done');
+    // no promise is returned from the complete method
+  });
+});
+```
+
+Methods used in pledges:
++ proceed()
+  + Processes function passed, continuing chain afterwards
+  + Parameters:
+    + Function to process if previous step successful *(function, required)*
+    + Function to process if previous step unsuccessful *(function, optional)*
++ consecutive()
+  + Processes in order list of functions passed, continuing chain afterwards
+  + Parameters:
+    + Functions to process if previous step successful *(array, required)*
+    + Function(s) to process if previous step unsuccessful *(array / function, optional)*
++ concurrent()
+  + Processes in parallel list of functions passed, continuing chain afterwards
+  + Parameters:
+    + Functions to process if previous step successful *(array, required)*
+    + Function to process if previous step unsuccessful *(function, optional)*
++ complete()
+  + Processes function passed, not continuing chain afterwards
+  + Parameters:
+    + Function to process if previous step successful *(function, required)*
+    + Function to process if previous step unsuccessful *(function, optional)*
+
 ### $(selector) methods
 
 **$(selector).activate()**
