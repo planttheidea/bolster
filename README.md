@@ -9,9 +9,9 @@ jQuery is a wonderful, magical, omnipresent library that makes the lives of most
 
 ### Size
 
-+ Uncompressed: 27.19KB
-+ Minified: 11.42KB
-+ Minified and gzipped: 4.03KB
++ Uncompressed: 28.22KB
++ Minified: 11.91KB
++ Minified and gzipped: 4.31KB
 
 ### Components
 
@@ -246,53 +246,87 @@ if((dims.width > 100) && ($.window('scrollTop') > 300)){
 
 Provide basic promise functionality, allowing for conversion of function execution to become asynchronous. To execute the method, pass in the first function in the chain.
 
-Examples:
-```html
-$.pledge(function(){
-  var self = this;
-  // capture this, because it changes inside setTimeout
-
-  window.setTimeout(function(){
-    console.log('delayed return');
-    self.resolve('Data from first');
-  },1000);
-}).proceed(function(data){
-  console.log(data);
-  // logs "Data from first"
-  
-  this.resolve('Data from second');
-}).complete(function(data){
-  console.log(data);
-  // logs "Data from second"
-
-  window.setTimeout(function(){
-    console.log('done');
-    // no promise is returned from the complete method
-  });
-});
-```
-
 Methods used in pledges:
-+ proceed()
-  + Processes function passed, continuing chain afterwards
++ complete()
+  + Processes function passed, not continuing chain afterwards
   + Parameters:
     + Function to process if previous step successful *(function, required)*
+    + Function to process if previous step unsuccessful *(function, optional)*
++ concurrent()
+  + Processes in parallel list of functions passed, continuing chain afterwards
+  + Parameters:
+    + Functions to process if previous step successful *(array, required)*
     + Function to process if previous step unsuccessful *(function, optional)*
 + consecutive()
   + Processes in order list of functions passed, continuing chain afterwards
   + Parameters:
     + Functions to process if previous step successful *(array, required)*
     + Function(s) to process if previous step unsuccessful *(array / function, optional)*
-+ concurrent()
-  + Processes in parallel list of functions passed, continuing chain afterwards
-  + Parameters:
-    + Functions to process if previous step successful *(array, required)*
-    + Function to process if previous step unsuccessful *(function, optional)*
-+ complete()
-  + Processes function passed, not continuing chain afterwards
++ proceed()
+  + Processes function passed, continuing chain afterwards
   + Parameters:
     + Function to process if previous step successful *(function, required)*
     + Function to process if previous step unsuccessful *(function, optional)*
++ start()
+  + Processes function passed, beginning chain that continues afterwards
+    + Parameters:
+      + Function to process *(function, required)*
+  + Not required, passing function to *$.pledge* will perform the same function
++ wait()
+  + Delays chain of promises for period of time passed in
+  + Parameters:
+    + delay, in milliseconds *(integer, required)*
+    + test to determine if should continue or not *(boolean / function, optional)*
+
+Examples:
+```html
+var func1 = function(data){
+    console.log(data);
+    this.resolve('Data from func1');
+  },
+  func2 = function(data){
+    console.log(data);
+    this.resolve('Data from func2');
+  },
+  x = 10;
+
+$.pledge(function(){
+  console.log('Begin');
+  this.resolve('Data from first');
+})
+  .proceed(function(data){
+    var self = this;
+    // capture this, because it changes inside setTimeout
+  
+    window.setTimeout(function(){
+      console.log(data);
+      // logs "Data from first"
+      self.resolve('Data from second');
+    },1000);
+  })
+  .wait(1000)
+  // waits for 1 second before continuing
+  .consecutive([func1,func2])
+  // first logs "Data from second", then logs "Data from func1"
+  .wait(2500,(x === 10))
+  // waits for 2.5 seconds before continuing, only because (x === 10) is true
+  .concurrent([func1,func2])
+  // logs "Data from func2" twice (as the same data was passed into each concurrent function)
+  .wait(500,function(){
+    return (x > 5);
+  })
+  // waits for 0.5 seconds before continuing, only because the function return is true
+  .complete(function(data){
+    console.log(data);
+    // logs array ["Data from func1","Data from func2"]
+    // array is in order of processing finished, not in order of array passed in
+  
+    window.setTimeout(function(){
+      console.log('done');
+      // no promise is returned from the complete method
+    });
+  });
+```
 
 **$.postpone()**
 
