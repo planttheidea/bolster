@@ -294,6 +294,42 @@ Methods used in pledges:
     + Function to process if previous step successful *(function, required)*
     + Function to process if previous step unsuccessful *(function, optional)*
 
+**$.postpone()**
+
+Provide basic deferred functionality, allowing a function to have a promise allocated to it simply by executing it. To execute this method, assign the deferred to a variable and apply methods.
+
+Example:
+```html
+function testDeferred(x){
+  var postpone = $.postpone();
+      
+  if(x === 10){
+    postpone.resolve('X equals 10');
+  } else {
+    postpone.reject('X does not equal 10');
+  }
+  
+  return postpone.pledge();
+}
+
+testDeferred(10).proceed(function(data){
+  console.log(data);
+  // logs "X equals 10"
+});
+
+testDeferred(20).proceed(function(data){
+  console.log(data);
+  // logs "X does not equal 10"
+});
+```
+In application of the function with the deferred returned, it operates like any other promise. However, there are methods unique to *$.postpone*:
++ resolve *(string, optional)*
+  + Assigns data that will be passed to the next function in the promise chain
++ reject *(string, optional)*
+  + Assigns data that will be passed upon rejection
++ pledge *(no parameters)*
+  + Used in the return to instantiate a new pledge and begin the chain
+
 ### $(selector) methods
 
 **$(selector).activate()**
