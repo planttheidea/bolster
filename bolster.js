@@ -1027,6 +1027,10 @@
 				wait:function(delay,test){
 					var self = this,
 						testResult;
+						
+					if(!delay){
+						throwError('Value of delay must be provided.');
+					}
 					
 					switch($.type(test)){
 						case 'boolean':
