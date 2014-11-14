@@ -401,7 +401,7 @@ $('.NoColors').unstyle(['background-color','color']);
 ### Future goals
 
 While the scope of this will remain small, there are a few points of expansion I hope to eventually target:
-+ Promise functionality
++ Enhance Promise functionality (adding deferreds)
 + Expansion of window attributes
 + Expansion of feature detection
 + More built-in published topics
