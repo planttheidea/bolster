@@ -13,7 +13,10 @@
  *
 */
 (function(window,document,$){
-	var supports = (function(){
+	var throwError = function(e){
+			throw new Error(e);
+		},
+		supports = (function(){
 			var testElement = {
 					audio:document.createElement('audio'),
 					canvas:document.createElement('canvas'),
@@ -799,11 +802,11 @@
 						
 						break;
 					case 'undefined':
-						console.log(new Error('Must provide a topic to subscribe to; aborting processing.'));
+						throwError('Must provide a topic to subscribe to; aborting processing.');
 						
 						break;
 					default:
-						console.log(new Error('Invalid topic type, must be either string or array; aborting processing.'));		
+						throwError('Invalid topic type, must be either string or array; aborting processing.');		
 										
 						break;
 				}
@@ -882,6 +885,140 @@
 				scrollTop:prv_getScrollTop,
 				width:prv_getWidth
 			};
+		})(),
+		pledge = (function(){
+			var errors = {
+					badParam:'Parameter passed is not a valid type for this method.',
+					resolveEqualReject:'The length of resolve functions does not equal the length of reject functions.'
+				},
+				Pledge = function(){
+					this.clear = function(){
+						this.resolved = {};
+						this.rejected = {};
+						
+						this.puid = -1;
+						this.cuid = -1;
+					};
+					
+					this.resolve = function(data){
+						this.cuid++;
+
+						if(this.resolved[this.cuid]){
+							this.resolved[this.cuid].call(this,data);
+						}
+					};
+
+					this.reject = function(e){					
+						this.cuid++;
+
+						if(this.rejected[this.cuid]){
+							this.rejected[this.cuid].call(this,e);
+						}
+					};
+
+					this.push = function(onResolution, onRejection){
+						this.puid++;
+
+						if($.type(onResolution) === 'function'){
+							this.resolved[this.puid] = onResolution;
+						} else {
+							this.resolved[this.puid] = undefined;
+						}
+
+						if($.type(onRejection) === 'function'){
+							this.rejected[this.puid] = onRejection;
+						} else {
+							this.rejected[this.puid] = function(e){
+								throwError('Rejected: '+ e);
+							};
+						}
+					};
+					
+					this.clear();
+					
+					return this;
+				};
+				
+			Pledge.prototype = {
+				complete:function(onResolution,onRejection){
+					this.push(onResolution, onRejection);
+				},
+				consecutive:function(onResolutions,onRejections){
+					var isArray = ($.type(onRejections) === 'array'),
+						len = onResolutions.length;
+					
+					if(!isArray || (isArray && (len === onRejections.length))){
+						for(var i = 0, len = onResolutions.length; i < len; i++){
+							if(isArray){
+								this.push(onResolutions[i], onRejections[i]);
+							} else {
+								this.push(onResolutions[i], onRejection);
+							}
+						}
+						
+						return this;
+					} else if(isArray) {
+						this.clear();                
+						throwError(errors.resolveEqualReject);
+					}
+				},
+				concurrent:function(onResolutions,onRejection){
+					if(($.type(onRejection) === 'undefined') || ($.type(onRejection) === 'function')){
+						var len = onResolutions.length,
+							finished = [];
+						
+						this.push(function(data){
+							var self = this;
+							
+							for(var i = onResolutions.length; i--;){                    
+								(new Pledge()).start(function(){
+									onResolutions[i].call(this,data);
+								}).complete(function(newData){
+									finished.push(newData);
+									
+									if(finished.length === len){
+										self.resolve(finished);
+									}
+								});
+							}
+						},onRejection);
+														   
+						return this;
+					} else {
+						this.clear();
+						throwError(errors.badParam);
+					}
+				},
+				run:function(onResolution,onRejection){
+					this.push(onResolution,onRejection);     
+					return this;
+				},
+				start:function(fn){
+					if($.type(fn) === 'function'){
+						fn.call(this);
+					}
+					
+					return this;
+				}
+				
+			}
+			
+			$.extend({
+				pledge:function(fn){
+					switch($.type(fn)){
+						case 'function':
+							return (new Pledge()).start(fn);
+							break;
+						case 'undefined':
+							return new Pledge();
+							break;
+						default:
+							throwError(errors.badParam);
+							return this;
+							break;
+					}
+				}
+			});
 		})(),
 		helpFuncs = {
 			loadImg:function(self,i,len,callback){
@@ -1016,7 +1153,7 @@
 					
 					break;
 				default:
-					console.log(new Error('Parameter passed in is not of appropriate type; processing aborted.'));
+					throwwError('Parameter passed in is not of appropriate type; processing aborted.');
 					
 					return this;
 					
