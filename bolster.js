@@ -892,7 +892,7 @@
 					resolveEqualReject:'The length of resolve functions does not equal the length of reject functions.'
 				},
 				Pledge = function(){
-					this.clear = function(){
+					this.init = function(){
 						this.resolved = {};
 						this.rejected = {};
 						
@@ -934,9 +934,36 @@
 						}
 					};
 					
-					this.clear();
+					this.init();
 					
 					return this;
+				},
+				Defer = function(){
+					var self = this;
+					
+					this.resolve = function(resolutionData){
+						this.resolvePostpone = true;
+						this.resolveData = resolutionData;
+					};
+					
+					this.reject = function(rejectionData){
+						this.rejectPostpone = true;
+						this.rejectData = rejectionData;
+					};
+					
+					this.pledge = function(){
+						return (new Pledge()).start(function(){
+							var p = this;
+							
+							window.setTimeout(function(){
+								if(self.resolvePostpone) {
+									p.resolve(self.resolveData);
+								} else if(rejectMe) {
+									p.reject(self.rejectData);
+								}
+							},0);
+						});
+					};
 				};
 				
 			Pledge.prototype = {
@@ -958,7 +985,7 @@
 						
 						return this;
 					} else if(isArray) {
-						this.clear();                
+						this.init();                
 						throwError(errors.resolveEqualReject);
 					}
 				},
@@ -984,8 +1011,8 @@
 						},onRejection);
 														   
 						return this;
-					} else {
-						this.clear();
+					} else {nit
+						this.i();
 						throwError(errors.badParam);
 					}
 				},
@@ -1010,6 +1037,9 @@
 					} else {
 						throwError(errors.badParam);
 					}
+				},
+				defer:function(){
+					return new Defer();
 				}
 			});
 		})(),
