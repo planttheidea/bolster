@@ -863,12 +863,6 @@
 				webGL:prv_getWebGL,
 				webSocket:prv_getWebSocket
 			};
-			
-			$.extend({
-				supports:function(feature){
-					return supports[feature]();
-				}
-			});
 		})(),
 		// build module for $.publish(), $.subscribe(), and $.unsubscribe()
 		pubsub = (function(){
@@ -1005,18 +999,6 @@
 				subscribe:prv_subscribe,
 				unsubscribe:prv_unsubscribe
 			};
-			
-			$.extend({
-				publish:function(publishObj){
-					return pubsub.publish(publishObj);
-				},
-				subscribe:function(subscribeObj){
-					return pubsub.subscribe(subscribeObj);
-				},
-				unsubscribe:function(unsubscribeObj){
-					return pubsub.unsubscribe(unsubscribeObj);
-				}
-			});
 		})(),
 		// build module for $.window()
 		win = (function(){
@@ -1240,16 +1222,6 @@
 				width:prv_getWidth,
 				window:prv_getWindow
 			};
-			
-			$.extend({
-				window:function(attribute,element){
-					if(attribute){
-						return win[attribute](element);
-					} else {
-						return win.window();
-					}
-				}
-			});
 		})(),
 		// build module for $.document()
 		doc = (function(){
@@ -1308,16 +1280,6 @@
 				height:prv_getHeight,
 				width:prv_getWidth
 			}
-			
-			$.extend({
-				document:function(attribute){
-					if(attribute){
-						return doc[attribute]();
-					} else {
-						return doc.document();
-					}
-				}
-			});
 		})(),
 		// build module for $.pledge() and $.postpone()
 		pledge = (function(){
@@ -1570,20 +1532,6 @@
 					});
 				}
 			};
-			
-			// extend the $ object with the pledge and postpone methods
-			$.extend({
-				pledge:function(fn){
-					if($.type(fn) === 'function'){
-						return (new Pledge()).start(fn);
-					} else {
-						throwError('Must pass function into $.pledge.');
-					}
-				},
-				postpone:function(){
-					return new Postpone();
-				}
-			});
 		})(),
 		// functions to help internally
 		helpFuncs = {
@@ -1635,17 +1583,25 @@
 			 * but still need to wait for the img to be loaded
 			 * before value is returned
 			 */
-			naturalDimensions:function(el){
-				var img = new Image();
-				
-				img.onload = function(){
-					return {
-						height:(img.naturalHeight || img.height),
-						width:(img.naturalWidth || img.width)
+			naturalDimensions:{
+				height:function(el){
+					var img = new Image();
+					
+					img.onload = function(){
+						return (img.naturalHeight || img.height);
 					};
-				};
-				
-				img.src = el.src;
+					
+					img.src = el.src;
+				},
+				width:function(el){
+					var img = new Image();
+					
+					img.onload = function(){
+						return (img.naturalWidth || img.width);
+					};
+					
+					img.src = el.src;
+				}
 			},
 			/*
 			 * retrieve page without full pathing, which
@@ -1667,8 +1623,44 @@
 		};
 			
 	$.extend({
+		document:function(attribute){
+			if(attribute){
+				return doc[attribute]();
+			} else {
+				return doc.document();
+			}
+		},
 		page:function(page){
 			return helpFuncs.getPage(page || window.location.href);			
+		},
+		pledge:function(fn){
+			if($.type(fn) === 'function'){
+				return (new Pledge()).start(fn);
+			} else {
+				throwError('Must pass function into $.pledge.');
+			}
+		},
+		postpone:function(){
+			return new Postpone();
+		},
+		publish:function(publishObj){
+			return pubsub.publish(publishObj);
+		},
+		subscribe:function(subscribeObj){
+			return pubsub.subscribe(subscribeObj);
+		},
+		supports:function(feature){
+			return supports[feature]();
+		},
+		unsubscribe:function(unsubscribeObj){
+			return pubsub.unsubscribe(unsubscribeObj);
+		},
+		window:function(attribute,element){
+			if(attribute){
+				return win[attribute](element);
+			} else {
+				return win.window();
+			}
 		}
 	});
 
@@ -1732,11 +1724,11 @@
 		},
 		// retrieve naturalHeight of first element in object
 		naturalHeight:function(){
-			return helpFuncs.naturalDimensions(this.get(0)).height;
+			return helpFuncs.naturalDimensions.height(this.get(0));
 		},
 		// retrieve naturalWidth of first element in object
 		naturalWidth:function(){
-			return helpFuncs.naturalDimensions(this.get(0)).width;
+			return helpFuncs.naturalDimensions.width(this.get(0));
 		},
 		/*
 		 * make all elements in object, and all children, unseletable
