@@ -800,63 +800,86 @@
 				return this;
 			}
 			
-			function prv_unsubscribe(unsubscribeObj){
-				var token = IDs[unsubscribeObj.name];
+			function prv_unsubscribeName(name){
+				var token = IDs[name];
 				
 				if(token > 0){
 					for(var m in topics){
 						if(topics[m]){
 							for (var i = topics[m].length; i--;) {			
 								if(topics[m][i].token === token){
-									delete IDs[unsubscribeObj.name];									
+									if(IDs[name]){
+										delete IDs[name];
+									}
+									
 									topics[m].splice(i,1);
 								}
 							}
 						}
 					}
 				}
+			}
+			
+			function prv_unsubscribe(unsubscribeObj){
+				switch($.type(unsubscribeObj.name)){
+					case 'string':
+						prv_unsubscribeName(unsubscribeObj.name);
+						
+						break;
+					case 'array':
+						for(var i = unsubscribeObj.name.length; i--;){
+							prv_unsubscribeName(unsubscribeObj.name[i]);
+						}
+						
+						break;
+					default:
+						throwError('Name passed is not of valid type.');
+						break;
+				}
 				
 				return this;
 			}
 			
-			function prv_subscribe(subscribeObj){			
+			function prv_subscribeTopic(topic,newToken,fn){
+				if($.type(topics[topic]) !== 'array'){
+					topics[topic] = [];
+				}
+			
+				topics[topic].push({
+					token:newToken,
+					func:fn
+				});
+			}
+			
+			function prv_subscribe(subscribeObj){
+				if($.type(subscribeObj.name) !== 'string'){
+					throwError('Name passed is not a string.');
+					return false;
+				}
+						
 				if(IDs[subscribeObj.name]){
-					prv_unsubscribe(subscribeObj);
+					prv_unsubscribeName(subscribeObj.name);
 				}
 				
 				subscribeObj.token = (++subUid);
 				
 				switch($.type(subscribeObj.topic)){
 					case 'string':
-						if($.type(topics[subscribeObj.topic]) !== 'array'){
-							topics[subscribeObj.topic] = [];
-						}
-					
-						topics[subscribeObj.topic].push({
-							token:subscribeObj.token,
-							func:subscribeObj.fn
-						});
-						
+						prv_subscribeTopic(subscribeObj.topic,subscribeObj.token,subscribeObj.fn);
+
 						break;
 					case 'array':					
 						for(var i = subscribeObj.topic.length; i--;){
-							if($.type(topics[subscribeObj.topic[i]]) !== 'array'){
-								topics[subscribeObj.topic[i]] = [];
-							}
-							
-							topics[subscribeObj.topic[i]].push({
-								token:subscribeObj.token,
-								func:subscribeObj.fn
-							});
+							prv_subscribeTopic(subscribeObj.topic[i],subscribeObj.token,subscribeObj.fn);
 						};
 						
 						break;
 					case 'undefined':
-						throwError('Must provide a topic to subscribe to; aborting processing.');
+						throwError('Must provide a topic to subscribe to.');
 						
 						break;
 					default:
-						throwError('Invalid topic type, must be either string or array; aborting processing.');		
+						throwError('Invalid topic type, must be either string or array.');		
 										
 						break;
 				}
@@ -1099,7 +1122,7 @@
 				h = $document.height();
 				
 				pubsub.publish({
-					topic:'documentSize',
+					topic:'documentResize',
 					data:{
 						width:w,
 						height:h
@@ -1405,9 +1428,9 @@
 		unsubscribe:function(unsubscribeObj){
 			return pubsub.unsubscribe(unsubscribeObj);
 		},
-		window:function(attribute){
+		window:function(attribute,element){
 			if(attribute){
-				return win[attribute]();
+				return win[attribute](element);
 			} else {
 				return win.window();
 			}
