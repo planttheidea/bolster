@@ -67,7 +67,7 @@ Example:
 ```html
 $.subscribe({
   // topic:'divClick',
-  topic:['divClick','windowSize'],
+  topic:['divClick','divDimensionsResize'],
   name:'getDivDimensions',
   fn:function(data,topic){
     if(data.width > 200){
@@ -116,13 +116,14 @@ Built-in published topics:
 **$.unsubscribe()**
 
 Remove subscription(s) to a topic based on subscription name passed in. To execute the method, a single object is passed in with the following components:
-+ name *(string, required)*
++ name *(string / array, required)*
   + Unique name of subscription
 
 Example:
 ```html
 $.unsubscribe({
-  name:'getDivDimensions'
+  //name:'getDivDimensions'
+  name:['getDivDimensions','someOtherTopic']
 });
 ```
 
