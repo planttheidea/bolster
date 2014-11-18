@@ -18,11 +18,13 @@ jQuery is a wonderful, magical, omnipresent library that makes the lives of most
 + $ methods
   + Publish / Subscribe
   + Feature detection
-  + Window values
-  + Promises
+  + Window attributes
+  + Document attributes
+  + Promises / deferreds
 + $(selector) methods
   + Setting / removing / detecting "active" elements
   + Completion of image loading
+  + Getting natural width / height of image
   + Setting attributes to not be selectable
   + Removing inline styling
 
