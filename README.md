@@ -9,9 +9,9 @@ jQuery is a wonderful, magical, omnipresent library that makes the lives of most
 
 ### Size
 
-+ Uncompressed: 28.3KB
-+ Minified: 11.95KB
-+ Minified and gzipped: 4.16KB
++ Uncompressed: 34.93KB
++ Minified: 15.69KB
++ Minified and gzipped: 5.0KB
 
 ### Components
 
@@ -120,6 +120,7 @@ Check if browser supports a specific feature, and there are many features that a
 + canvas *(HTML5 canvas element)*
 + classList *(classList attribute of element)*
 + cssAnimation *(CSS3 animations)*
++ cssCalc *(CSS3 calc() size determination)*
 + cssColumn *(CSS3 columns)*
 + cssReflection *(CSS3 reflections)*
 + cssStylesheet *(HTML5 styleSheet attribute)*
@@ -434,6 +435,26 @@ $('img').imgLoad(function(percent){
   $('.LoadingSpan').text(percent + '%');
 },50);
 // delay is in milliseconds
+```
+
+**$(selector).naturalHeight()**
+
+Retrieve the natural height of an image (height that it would be absent any CSS styling). To execute the method, simply call it (no parameters accepted).
+
+Example:
+```html
+console.log($('img').naturalHeight());
+// assuming img dimensions are 300x200 (W x H), logs 200
+```
+
+**$(selector).naturalWidth()**
+
+Retrieve the natural width of an image (width that it would be absent any CSS styling). To execute the method, simply call it (no parameters accepted).
+
+Example:
+```html
+console.log($('img').naturalWidth());
+// assuming img dimensions are 300x200 (W x H), logs 300
 ```
 
 **$(selector).unselectable()**
