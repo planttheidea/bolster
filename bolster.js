@@ -13,10 +13,13 @@
  *
 */
 (function(window,document,$){
+	// universal error-throwing function
 	var throwError = function(e){
 			throw new Error(e);
 		},
+		// build module for $.supports()
 		supports = (function(){
+			// elements to be used in testing functionality
 			var testElement = {
 					audio:document.createElement('audio'),
 					canvas:document.createElement('canvas'),
@@ -26,7 +29,8 @@
 					style:document.createElement('style'),
 					video:document.createElement('video')
 				},
-				newCss3Style = function(prefixArray){
+				// test if new CSS property is supported
+				newCss3Property = function(prefixArray){
 					try {
 						var support = false;
 						
@@ -42,6 +46,7 @@
 						return false;
 					}
 				},
+				// test if new value for existing CSS property is supported
 				newCss3Value = function(type,val){
 					try {
 						var curVal = testElement.div.style[type];
@@ -58,9 +63,11 @@
 						return false;
 					}
 				},
+				// tests if new attribute for existing HTML element is supported
 				newHtml5Attribute = function(newAttr){
 					return (newAttr in testElement.input);
 				},
+				// tests if new type of input HTML element is supported
 				newHtml5Input = function(newType){
 					try {
 						var curType = testElement.input.type;
@@ -77,6 +84,7 @@
 						return false;
 					}
 				},
+				// function to test if new pseudo-class or pseudo-element is supported
 				pseudoSelectorTest = function(selector){
 					try {
 						var root = document.documentElement,
@@ -119,9 +127,11 @@
 						return false;
 					}
 				},
+				// initializes pseudo selector test, necessary to avoid invalid returns of false
 				pseudoSelectorInitialize = (function(){
 					return pseudoSelectorTest('test');
 				})(),
+				// removes stylesheet added for testing on page
 				stylesheetCleanup = function(){
 					var h = (document.head || document.getElementsByTagName('head')[0]);
 					
@@ -129,6 +139,7 @@
 						h.removeChild(testElement.style);
 					}
 				},
+				// tests if event is supported
 				eventTest = function(eventName,el){
 					try {
 						var el = el || testElement.div
@@ -151,52 +162,73 @@
 						return false;
 					}
 				},
+				//HTML5 Application Cache
 				applicationCache = !!(window.applicationCache),
+				// legacy IE attachEvent for event binding
 				attachEvent = (function(){					
 					return (testElement.div.attachEvent);
 				})(),
+				// HTML5 audio element, each possible format
 				audioMP3 = !!(testElement.audio.canPlayType && testElement.audio.canPlayType('audio/mpeg;').replace(/no/,'')),
 				audioMP4 = !!(testElement.audio.canPlayType && testElement.audio.canPlayType('audio/mp4;').replace(/no/,'')),
 				audioOGG = !!(testElement.audio.canPlayType && testElement.audio.canPlayType('audio/ogg;').replace(/no/,'')),
+				// CSS3 box-shadow property, with prefixes
 				boxShadow = (function(){
-					return newCss3Style(['boxShadow','MozBoxShadow','WebkitBoxShadow','MsBoxShadow','KhtmlBoxShadow','OBoxShadow']);
+					return newCss3Property(['boxShadow','MozBoxShadow','WebkitBoxShadow','MsBoxShadow','KhtmlBoxShadow','OBoxShadow']);
 				})(),
+				// HTML5 canvas element
 				canvas = !!(testElement.canvas.getContext && testElement.canvas.getContext('2d')),
+				// classList API
 				classList = !!(document.documentElement.classList),
+				// CSS3 animation
 				cssAnimation = (function(){
 					if(testElement.div.style.animationName) {
 						return true;
 					} else {
-						return newCss3Style(['WebkitAnimationName','MozAnimationName','OAnimationName','msAnimationName','KhtmlAnimationName']);
+						return newCss3Property(['WebkitAnimationName','MozAnimationName','OAnimationName','msAnimationName','KhtmlAnimationName']);
 					}
 				})(),
+				// dimensions based on CSS3 calc()
 				cssCalc = (function(){
 					return newCss3Value('width','calc(100% - 10px)');
 				})(),
+				// CSS3 columns
 				cssColumn = (function(){
-					return newCss3Style(['columnCount','webkitColumnCount','MozColumnCount']);
+					return newCss3Property(['columnCount','webkitColumnCount','MozColumnCount']);
 				})(),
+				// Reflection of elements
 				cssReflection = (function(){
-					return newCss3Style(['boxReflect','WebkitBoxRefect']);
+					return newCss3Property(['boxReflect','WebkitBoxRefect']);
 				})(),
+				// HTML5 styleSheet API
 				cssStylesheet = !!(testElement.style.styleSheet),
+				// HTML5 CustomEvent
 				customEvent = !!(window.CustomEvent),
+				// HTML5 draggable / droppable attribute
 				dragAndDrop = !!('draggable' in testElement.div),
+				// HTML5 eventListener for event binding
 				eventListener = (function(){
 					return (testElement.div.addEventListener);
 				})(),
+				// CSS3 display property value of flex
 				flexbox = (function(){
 					return newCss3Value('display','flex');
 				})(),
+				// HTML5 geolocation API
 				geolocation = !!('geolocation' in navigator),
+				// getElementsByClassName API
 				getElementsByClassName = !!(document.getElementsByClassName),
+				// HTML5 hashchange event
 				hashchange = (function(){
 					return eventTest('hashchange',window);
 				})(),
+				// HTML5 History API
 				history = !!(window.history && window.history.pushState),
+				// CSS3 hsla color values
 				hsla = (function(){
 					return newCss3Value('background-color','hsla(0,0%,0%,0)');
 				})(),
+				// HTML IndexedDB API
 				indexedDB = (function(){
 					try {
 						var prefixArray = ['webkit','ms','moz'],
@@ -218,75 +250,99 @@
 						return false;
 					}
 				})(),
+				// HTML5 autocomplete attribute on input
 				inputAutocomplete = (function(){
 					return newHtml5Attribute('autocomplete');
 				})(),
+				// HTML5 autofocus attribute on input
 				inputAutofocus = (function(){
 					return newHtml5Attribute('autofocus');
 				})(),
+				// HTML5 color input type
 				inputColor = (function(){
 					return newHtml5Input('color');
 				})(),
+				// HTML5 date input type
 				inputDate = (function(){
 					return newHtml5Input('date');
 				})(),
+				// HTML5 datetime input type
 				inputDateTime = (function(){
 					return newHtml5Input('datetime');
 				})(),
+				// HTML5 datetime-local input type
 				inputDateTimeLocal = (function(){
 					return newHtml5Input('datetime-local');
 				})(),
+				// HTML5 email input type
 				inputEmail = (function(){
 					return newHtml5Input('email');
 				})(),
+				// HTML5 list attribute on input
 				inputList = (function(){
 					return newHtml5Attribute('list');
 				})(),
+				// HTML5 max attribute on input
 				inputMax = (function(){
 					return newHtml5Attribute('max');
 				})(),
+				// HTML5 min attribute on input
 				inputMin = (function(){
 					return newHtml5Attribute('min');
 				})(),
+				// HTML5 multiple attribute on input
 				inputMultiple = (function(){
 					return newHtml5Attribute('multiple');
 				})(),
+				// HTML5 month input type
 				inputMonth = (function(){
 					return newHtml5Input('month');
 				})(),
+				// HTML5 number input type
 				inputNumber = (function(){
 					return newHtml5Input('number');
 				})(),
+				// HTML5 pattern attribute on input
 				inputPattern = (function(){
 					return newHtml5Attribute('pattern');
 				})(),
+				// HTML5 placeholder attribute on input
 				inputPlaceholder = (function(){
 					return newHtml5Attribute('placeholder');
 				})(),
+				// HTML5 range input type
 				inputRange = (function(){
 					return newHtml5Input('range');
 				})(),
+				// HTML5 required attribute on input
 				inputRequired = (function(){
 					return newHtml5Attribute('required');
 				})(),
+				// HTML5 search input type
 				inputSearch = (function(){
 					return newHtml5Input('search');
 				})(),
+				// HTML5 step attribute on input
 				inputStep = (function(){
 					return newHtml5Attribute('step');
 				})(),
+				// HTML5 tel input type
 				inputTel = (function(){
 					return newHtml5Input('tel');
 				})(),
+				// HTML5 time input type
 				inputTime = (function(){
 					return newHtml5Input('time');
 				})(),
+				// HTML5 url input type
 				inputUrl = (function(){
 					return newHtml5Input('url');
 				})(),
+				// HTML5 week input type
 				inputWeek = (function(){
 					return newHtml5Input('week');
 				})(),
+				// HTML5 localStorage API
 				localStorage = (function(){
 					try {
 						window.localStorage.setItem('test','test');
@@ -296,6 +352,7 @@
 						return false;
 					}
 				})(),
+				// CSS3 linear gradient values for background-image property
 				linearGradient = (function(){
 					try {
 						var valueArray = ['linear-gradient','-webkit-linear-gradient','-moz-linear-gradient','-o-linear-gradient'],
@@ -317,6 +374,7 @@
 						return false;
 					}
 				})(),
+				// CSS3 @media support for stylesheets based on size of window
 				mediaQueries = (function(){
 					try {
 						var mqStyle = document.createElement('style'),
@@ -341,41 +399,55 @@
 						return false;
 					}
 				})(),
+				// HTML5 pageXOffset and pageYOffset APIs
 				pageOffset = (($.type(window.pageXOffset) !== 'undefined') && ($.type(window.pageYOffset) !== 'undefined')),
+				// HTML5 postMessage API
 				postMessage = !!(window.postMessage),
+				// CSS3 support for :active psuedo-selector
 				pseudoActive = (function(){
 					return pseudoSelectorTest(':active');
 				})(),
+				// CSS3 support for ::after psuedo-class
 				pseudoAfterClass = (function(){
 					return pseudoSelectorTest(':after');
 				})(),
+				// CSS3 support for ::after psuedo-element
 				pseudoAfterElement = (function(){
 					return pseudoSelectorTest('::after');
 				})(),
+				// CSS3 support for :before psuedo-class
 				pseudoBeforeClass = (function(){
 					return pseudoSelectorTest(':before');
 				})(),
+				// CSS3 support for ::before psuedo-element
 				pseudoBeforeElement = (function(){
 					return pseudoSelectorTest('::before');
 				})(),
+				// CSS3 support for :focus psuedo-class
 				pseudoFocus = (function(){
 					return pseudoSelectorTest(':focus');
 				})(),
+				// CSS3 support for :hover psuedo-class
 				pseudoHover = (function(){
 					return pseudoSelectorTest(':hover');
 				})(),
+				// CSS3 support for ::first-letter psuedo-element
 				pseudoFirstLetter = (function(){
 					return pseudoSelectorTest('::first-letter');
 				})(),
+				// CSS3 support for ::first-line psuedo-element
 				pseudoFirstLine = (function(){
 					return pseudoSelectorTest('::first-line');
 				})(),
+				// CSS3 support for :link psuedo-class
 				pseudoLink = (function(){
 					return pseudoSelectorTest(':link');
 				})(),
+				// CSS3 support for :visited psuedo-class
 				pseudoVisited = (function(){
 					return pseudoSelectorTest(':visited');
 				})(),
+				// CSS3 radial gradient values for background-image property
 				radialGradient = (function(){
 					try {
 						var valueArray = ['radial-gradient','-webkit-radial-gradient','-moz-radial-gradient','-o-radial-gradient'],
@@ -393,9 +465,11 @@
 						return false;
 					}
 				})(),
+				// CSS3 rgba color values
 				rgba = (function(){
 					return newCss3Value('background-color','rgba(0,0,0,0)');
 				})(),
+				// HTML5 sessionStorage API
 				sessionStorage = (function(){
 					try {
 						window.sessionStorage.setItem('test','test');
@@ -405,15 +479,21 @@
 						return false;
 					}
 				})(),
+				// HTML5 SMIL API
 				smil = !!(document.createElementNS('http://www.w3.org/2000/svg','animateMotion').toString().indexOf('SVG') > -1),
+				// HTML5 svg element
 				svg = !!(document.createElementNS && document.createElementNS('http://www.w3.org/2000/svg','svg').createSVGRect),
+				// CSS3 text-shadow property
 				textShadow = (function(){
-					return newCss3Style(['textShadow']);
+					return newCss3Property(['textShadow']);
 				})(),
+				// HTML5 touch events
 				touchEvents = !!(('ontouchstart' in document.documentElement) || window.navigator.msMaxTouchPoints),
+				// CSS3 2D transforms
 				transform2d = (function(){
-					return newCss3Style(['transform','webkitTransform','MozTransform','msTransform','OTransform']);
+					return newCss3Property(['transform','webkitTransform','MozTransform','msTransform','OTransform']);
 				})(),
+				// CSS3 3D transforms
 				transform3d = (function(){
 					if(transform2d){
 						try {
@@ -435,9 +515,11 @@
 						return false;
 					}
 				})(),
+				// HTML5 video element, each possible format
 				videoMP4 = !!(testElement.video.canPlayType && testElement.video.canPlayType('video/mp4;').replace(/no/,'')),
 				videoOGG = !!(testElement.video.canPlayType && testElement.video.canPlayType('video/ogg;').replace(/no/,'')),
 				videoWebM = !!(testElement.video.canPlayType && testElement.video.canPlayType('video/webm;').replace(/no/,'')),
+				// HTML4 webgl (3D canvas)
 				webGL = (function(){
 					try {
 						var support = false;
@@ -459,11 +541,20 @@
 						return false;
 					}
 				})(),
+				// HTML5 Web Socket API
 				webSocket = !!(window.WebSocket && window.WebSocket.prototype.send),
+				// HTML5 Web SQL API (now deprecated)
 				webSQL = !!(window.openDatabase);
 				
 			stylesheetCleanup();
-				
+			
+			/*
+			 * functions below are to retrieve all values from the module
+			 * objects that return an object with multiple properties also have
+			 * a separate function to retrieve that one property; the consolidated
+			 * object exists in case multiple types of the same test are needed
+			 */
+			
 			function prv_getApplicationCache(){
 				return applicationCache;
 			}
@@ -719,6 +810,7 @@
 				return webSocket;
 			}
 			
+			// API for all above functions
 			return {
 				applicationCache:prv_getApplicationCache,
 				attachEvent:prv_getAttachEvent,
@@ -771,16 +863,25 @@
 				webGL:prv_getWebGL,
 				webSocket:prv_getWebSocket
 			};
+			
+			$.extend({
+				supports:function(feature){
+					return supports[feature]();
+				}
+			});
 		})(),
+		// build module for $.publish(), $.subscribe(), and $.unsubscribe()
 		pubsub = (function(){
 			var topics = {},
 				IDs = {},
 				subUid = -1;
-				
+			
+			// function to retrieve internal ID assigned to subscription
 			function prv_getID(idObj){
 				return IDs[idObj.name];
 			}
 			
+			// publishes event, with data and topic as arguments
 			function prv_publish(publishObj){
 				var data = (publishObj.data || {}),
 					subscribers,
@@ -800,17 +901,17 @@
 				return this;
 			}
 			
+			/* 
+			 * performs unsubscription (abstracted for different types of names
+			 * passed into API function
+			 */
 			function prv_unsubscribeName(name){
-				var token = IDs[name];
-				
-				if(token > 0){
+				if(IDs[name] > 0){
 					for(var m in topics){
 						if(topics[m]){
 							for (var i = topics[m].length; i--;) {			
-								if(topics[m][i].token === token){
-									if(IDs[name]){
-										delete IDs[name];
-									}
+								if(topics[m][i].token === IDs[name]){
+									delete IDs[name];
 									
 									topics[m].splice(i,1);
 								}
@@ -820,6 +921,7 @@
 				}
 			}
 			
+			// API access, calls prv_unsubscribeName differently depending on type
 			function prv_unsubscribe(unsubscribeObj){
 				switch($.type(unsubscribeObj.name)){
 					case 'string':
@@ -840,6 +942,7 @@
 				return this;
 			}
 			
+			// performs subscription (abstrated for the same reason as above unsubscription)
 			function prv_subscribeTopic(topic,newToken,fn){
 				if($.type(topics[topic]) !== 'array'){
 					topics[topic] = [];
@@ -851,18 +954,23 @@
 				});
 			}
 			
+			/*
+			 * unsubscribes name if subscription already exists, then subscribes
+			 * to the topics provided
+			 */
 			function prv_subscribe(subscribeObj){
+				// throws an error if the name passed is not a string
 				if($.type(subscribeObj.name) !== 'string'){
 					throwError('Name passed is not a string.');
 					return false;
 				}
-						
+				
+				// unsubscribes from topic if subscription already exists
 				if(IDs[subscribeObj.name]){
 					prv_unsubscribeName(subscribeObj.name);
 				}
 				
-				subscribeObj.token = (++subUid);
-				
+				// subscriptions called differently depending on typ
 				switch($.type(subscribeObj.topic)){
 					case 'string':
 						prv_subscribeTopic(subscribeObj.topic,subscribeObj.token,subscribeObj.fn);
@@ -884,25 +992,45 @@
 						break;
 				}
 				
-				IDs[subscribeObj.name] = subscribeObj.token;
+				// assigns new ID
+				IDs[subscribeObj.name] = (++subUid);
 				
 				return this;
 			}
 			
+			// API to perform actions
 			return {
 				getID:prv_getID,
 				publish:prv_publish,
 				subscribe:prv_subscribe,
 				unsubscribe:prv_unsubscribe
 			};
+			
+			$.extend({
+				publish:function(publishObj){
+					return pubsub.publish(publishObj);
+				},
+				subscribe:function(subscribeObj){
+					return pubsub.subscribe(subscribeObj);
+				},
+				unsubscribe:function(unsubscribeObj){
+					return pubsub.unsubscribe(unsubscribeObj);
+				}
+			});
 		})(),
+		// build module for $.window()
 		win = (function(){
+			// cache window object
 			var $window = $(window),
+				// initial window attributes
 				h = $window.height(),
 				w = $window.width(),
 				t = $window.scrollTop(),
+				// video element used for fullscreen testing
 				video = document.createElement('video'),
+				// get prefix-specific fullscreen API functions
 				fullscreen = (function(){
+					// proper Fullscreen API support
 					if(video.requestFullScreen){
 						return {
 							active:function(){
@@ -918,6 +1046,7 @@
 								document.exitFullscreen();
 							}
 						};
+					// legacy Webkit prefixed support
 					} else if(video.webkitRequestFullscreen){
 						return {
 							active:function(){
@@ -933,6 +1062,7 @@
 								document.webkitExitFullscreen();
 							}
 						};
+					// legacy Mozilla prefixed support
 					} else if(video.mozRequestFullScreen){
 						return {
 							active:function(){
@@ -948,6 +1078,7 @@
 								document.mozCancelFullScreen();
 							}
 						};
+					// legacy Microsoft prefixed support
 					} else if(video.msRequestFullscreen){
 						return {
 							active:function(){
@@ -963,6 +1094,7 @@
 								document.msExitFullscreen();
 							}
 						};
+					// no support at all
 					} else {
 						return {
 							active:function(){
@@ -980,9 +1112,11 @@
 						};
 					}
 				})(),
+				// initial fullscreen values
 				f = fullscreen.element(),
 				a = fullscreen.active();
-				
+			
+			// functions to access above values / functions through API
 			function prv_fullscreenEnter(el){
 				return fullscreen.enter(el);
 			}
@@ -1026,6 +1160,7 @@
 				h = $window.height();
 				w = $window.width();
 				
+				// publish new dimensions on resize
 				pubsub.publish({
 					topic:'windowResize',
 					data:{
@@ -1039,6 +1174,7 @@
 				f = fullscreen.element();
 				a = fullscreen.active();
 				
+				// publish new fullscreen attributes on change
 				pubsub.publish({
 					topic:'fullscreenChange',
 					data:{
@@ -1051,6 +1187,7 @@
 			function prv_setScrollTop(){
 				t = $window.scrollTop();
 				
+				// publish new scrollTop on scroll
 				pubsub.publish({
 					topic:'windowScroll',
 					data:{
@@ -1059,11 +1196,13 @@
 				});
 			}
 			
+			// establish initial publishing events for window activities
 			$window
 				.off('.bolster.setWindowAttributes')
 				.on({
 					'webkitfullscreenchange.bolster.setWindowAttributes mozfullscreenchange.bolster.setWindowAttributes fullscreenchange.bolster.setWindowAttributes MSFullscreenChange.bolster.setWindowAttributes':prv_setFullscreenElement,
 					'load.bolster.setWindowAttributes':function(e){
+						// publish all window attributes on load
 						pubsub.publish({
 							topic:'windowLoad',
 							data:{
@@ -1077,6 +1216,7 @@
 					},
 					'resize.bolster.setWindowAttributes':prv_setDimensions,
 					'popstate.bolster.setWindowAttributes':function(e){
+						// publish new attributes onpopstate
 						pubsub.publish({
 							topic:'popstateChange',
 							data:{
@@ -1088,6 +1228,7 @@
 					'scroll.bolster.setWindowAttributes':prv_setScrollTop
 				});
 			
+			// API to get values
 			return {
 				dimensions:prv_getDimensions,
 				enterFullscreen:prv_fullscreenEnter,
@@ -1099,12 +1240,26 @@
 				width:prv_getWidth,
 				window:prv_getWindow
 			};
+			
+			$.extend({
+				window:function(attribute,element){
+					if(attribute){
+						return win[attribute](element);
+					} else {
+						return win.window();
+					}
+				}
+			});
 		})(),
+		// build module for $.document()
 		doc = (function(){
+			// cache document object
 			var $document = $(document),
+				// get initial document values
 				w = $document.width(),
 				h = $document.height();
 			
+			// function to retrieve document attributes
 			function prv_getDocument(){
 				return $document;
 			}
@@ -1121,6 +1276,7 @@
 				w = $document.width();
 				h = $document.height();
 				
+				// publish new dimensions on resize
 				pubsub.publish({
 					topic:'documentResize',
 					data:{
@@ -1130,10 +1286,12 @@
 				});
 			}
 			
+			// establish publishing events for document activities
 			$document
 				.off('.bolster.setDocumentAttributes')
 				.on({
 					'load.bolster.setDocumentAttributes':function(){
+						// publish all document attributes on load
 						pubsub.publish({
 							topic:'documentLoad',
 							data:{
@@ -1150,13 +1308,27 @@
 				height:prv_getHeight,
 				width:prv_getWidth
 			}
-		})();
+			
+			$.extend({
+				document:function(attribute){
+					if(attribute){
+						return doc[attribute]();
+					} else {
+						return doc.document();
+					}
+				}
+			});
+		})(),
+		// build module for $.pledge() and $.postpone()
 		pledge = (function(){
+			// reusable error messages
 			var errors = {
 					badParam:'Parameter passed is not a valid type for this method.',
 					testFailed:'Test did not pass.'
 				},
+				// create Pledge object
 				Pledge = function(){
+					// reset Pledge object
 					this.init = function(){
 						this.resolved = {};
 						this.rejected = {};
@@ -1165,6 +1337,7 @@
 						this.cuid = -1;
 					};
 					
+					// execute resolution of pledge
 					this.resolve = function(data){
 						this.cuid++;
 
@@ -1173,6 +1346,7 @@
 						}
 					};
 
+					// execute rejection of pledge
 					this.reject = function(e){	
 						this.cuid++;
 
@@ -1180,7 +1354,11 @@
 							this.rejected[this.cuid].call(this,e);
 						}
 					};
-
+					
+					/*
+					 * functions are stacked in order, awaiting
+					 * resolution before the next in line is executed
+					 */
 					this.push = function(onResolution, onRejection){
 						this.puid++;
 
@@ -1203,19 +1381,29 @@
 					
 					return this;
 				},
+				// create Postpone object
 				Postpone = function(){
+					// caching needed for this.pledge
 					var self = this;
 					
+					// assign data for resolution of postponed function
 					this.resolve = function(resolutionData){
 						this.resolvePostpone = true;
 						this.resolveData = resolutionData;
 					};
 					
+					// assign data for rejection of postponed function
 					this.reject = function(rejectionData){
 						this.rejectPostpone = true;
 						this.rejectData = rejectionData;
 					};
 					
+					/*
+					 * create new Pledge, begin the chain with simple
+					 * resolution or rejection, based on assignment (only
+					 * this.resolve OR this.reject is defined in a proper
+					 * scenario; if both are assigned, defaults to resolve)
+					 */
 					this.pledge = function(){
 						return (new Pledge()).start(function(){
 							var p = this;
@@ -1228,30 +1416,77 @@
 						});
 					};
 				};
-				
+			
+			// build functions for API of Pledge
 			Pledge.prototype = {
+				// executes function but does not continue the chain
 				complete:function(onResolution,onRejection){
 					this.push(onResolution, onRejection);
 				},
+				// executes all functions passed in order of array values
 				consecutive:function(onResolutions,onRejections){
-					var isArray = ($.type(onRejections) === 'array'),
-						len = onResolutions.length;
+					var rejectionType = $.type(onRejections),
+						validRejection = false;
 					
-					for(var i = 0, len = onResolutions.length; i < len; i++){
-						if(isArray){
-							this.push(onResolutions[i], onRejections[i]);
-						} else {
-							this.push(onResolutions[i], onRejections);
-						}
+					// make sure its a valid type
+					switch(rejectionType){
+						case 'array':
+						case 'function':
+						case 'undefined':
+							validRejection = true;
+							break;
+						default:
+							validRejection = false;
+							break;
 					}
+					
+					// value passed must be array
+					if(($.type(onResolutions) === 'array') && validRejection){
+						/* each rejection can have a unique function (array passed),
+						 * or can have single rejection function (function passed)
+						 */
+						var isArray = (rejectionType === 'array');
 						
-					return this;
+						for(var i = 0, len = onResolutions.length; i < len; i++){
+							if(isArray){
+								this.push(onResolutions[i], onRejections[i]);
+							} else {
+								this.push(onResolutions[i], onRejections);
+							}
+						}
+						
+						return this;
+					} else {
+						throwError(errors.badParam);
+					}
 				},
+				// executes all functions passed simultaneously
 				concurrent:function(onResolutions,onRejection){
-					if(($.type(onRejection) === 'undefined') || ($.type(onRejection) === 'function')){
+					var validRejection = false;
+					
+					// make sure its a valid type
+					switch($.type(onRejections)){
+						case 'function':
+						case 'undefined':
+							validRejection = true;
+							break;
+						default:
+							validRejection = false;
+							break;
+					}
+					
+					// cannot pass array of rejectio
+					if(validRejection){
 						var len = onResolutions.length,
 							finished = [];
 						
+						/*
+						 * create unique Pledge for each function, and upon
+						 * resolution push the data to the finished array;
+						 * when finished array is equal to the length of
+						 * the length of resolution functions, all resolutions
+						 * have occured, and so the concurrent step resolves
+						 */
 						function newPledge(fn,self,data){                        
 							(new Pledge()).start(function(){
 								fn.call(this,data);
@@ -1264,20 +1499,25 @@
 							});
 						}
 						
+						/*
+						 * create proceed function calling newPledge for
+						 * each function in array
+						 */
 						return this.proceed(function(data){
-							for(var i = onResolutions.length; i--;){
+							for(var i = len; i--;){
 								newPledge(onResolutions[i],this,data);
 							}
 						},onRejection);
 					} else {
-						this.init();
 						throwError(errors.badParam);
 					}
 				},
+				// push the resolve / reject functions to stack and continue chain
 				proceed:function(onResolution,onRejection){
 					this.push(onResolution, onRejection);     
 					return this;
 				},
+				// begin chain by executing function
 				start:function(fn){
 					if($.type(fn) === 'function'){
 						var self = this;
@@ -1289,14 +1529,20 @@
 						return self;
 					}
 				},
+				/*
+				 * create delay of processing based on delay passed,
+				 * and if test function is passed then continue if true
+				 */
 				wait:function(delay,test){
 					var self = this,
 						testResult;
-						
+					
+					// must pass delay to function
 					if(!delay){
-						throwError('Value of delay must be provided.');
+						throwError(errors.badParam);
 					}
 					
+					// determine test type
 					switch($.type(test)){
 						case 'boolean':
 							testResult = test;
@@ -1309,6 +1555,10 @@
 							break;
 					}
 					
+					/*
+					 * create proceed function creating setTImeout for
+					 * before resolving itself
+					 */
 					return self.proceed(function(data){
 						window.setTimeout(function(){
 							if(testResult){
@@ -1321,12 +1571,13 @@
 				}
 			};
 			
+			// extend the $ object with the pledge and postpone methods
 			$.extend({
 				pledge:function(fn){
 					if($.type(fn) === 'function'){
 						return (new Pledge()).start(fn);
 					} else {
-						throwError(errors.badParam);
+						throwError('Must pass function into $.pledge.');
 					}
 				},
 				postpone:function(){
@@ -1334,14 +1585,22 @@
 				}
 			});
 		})(),
+		// functions to help internally
 		helpFuncs = {
+			// perform preload of images
 			loadImg:function(self,i,len,callback){
 				if($.type(callback) === 'function'){
+					// create new Image object and assign element source to it
 					var img = new Image();
 					
 					img.src = self.src;
 					
+					// traditional check if img has loaded
 					if(img.complete || (img.readyState === 4) || (img.readyState === 'complete')){
+						/*
+						 * callback with object that includes many attributes
+						 * that you want to know about the img element
+						 */
 						callback.call(self,{
 							height:self.height,
 							naturalHeight:(img.naturalHeight || img.height),
@@ -1350,8 +1609,11 @@
 							src:self.src,
 							width:self.width
 						});
+					// IE has a problem with cached images not loading automatically on src assignment
 					} else {
+						// bind onload to new Image object
 						img.onload = function(){
+							// same callback object as above
 							callback.call(self,{
 								height:self.height,
 								naturalHeight:(img.naturalHeight || img.height),
@@ -1362,87 +1624,63 @@
 							});
 						};
 						
+						// assign source again, must happen after onload is bound
 						img.src = self.src;
 					}
 				}
 			},
-			naturalDimensions:(function(){
-				if('naturalWidth' in new Image()){
-					return function(el){
-						var img = new Image();
-						
-						img.src = el.src;
-						
-						return {
-							height:img.naturalHeight,
-							width:img.naturalWidth
-						};
+			/*
+			 * retrieve both naturalHeight and naturalWidth
+			 * modern browsers have this attribute included,
+			 * but still need to wait for the img to be loaded
+			 * before value is returned
+			 */
+			naturalDimensions:function(el){
+				var img = new Image();
+				
+				img.onload = function(){
+					return {
+						height:(img.naturalHeight || img.height),
+						width:(img.naturalWidth || img.width)
 					};
-				} else {
-					return function(el){
-						var img = new Image();
-						
-						img.src = el.src;
-						
-						img.onload = function(){
-							var self = this;
-							
-							return {
-								height:self.height,
-								width:self.width
-							};
-						};
-					};
-				}
-			})(),
-			getPage:function(pg){
+				};
+				
+				img.src = el.src;
+			},
+			/*
+			 * retrieve page without full pathing, which
+			 * is different depending on whether lastIndexOf
+			 * is supported by the browser
+			 */
+			getPage:(function(){
 				if(!Array.prototype.lastIndexOf){
-					var url = pg.split('/');									
-					return url[url.length-1].split('?')[0];
+					return function(pg){
+						var url = pg.split('/');									
+						return url[url.length-1].split('?')[0];
+					};
 				} else {
-					return pg.substring(pg.lastIndexOf('/')+1);
+					return function(pg){
+						return pg.substring(pg.lastIndexOf('/')+1);
+					}
 				}
-			}
+			})()
 		};
-		
+			
 	$.extend({
-		document:function(attribute){
-			if(attribute){
-				return doc[attribute]();
-			} else {
-				return doc.document();
-			}
-		},
 		page:function(page){
 			return helpFuncs.getPage(page || window.location.href);			
-		},
-		publish:function(publishObj){
-			return pubsub.publish(publishObj);
-		},
-		subscribe:function(subscribeObj){
-			return pubsub.subscribe(subscribeObj);
-		},
-		supports:function(feature){
-			return supports[feature]();
-		},
-		unsubscribe:function(unsubscribeObj){
-			return pubsub.unsubscribe(unsubscribeObj);
-		},
-		window:function(attribute,element){
-			if(attribute){
-				return win[attribute](element);
-			} else {
-				return win.window();
-			}
 		}
 	});
-	
+
+	// $(selector) methods
 	$.fn.extend({
+		// is the object "active" based on class passed or default
 		active:function(cls){
 			cls = cls || 'active';
 			
 			return this.hasClass(cls);
 		},
+		// set object elements to "active" based on class and parent passed or default
 		activate:function(cls,parent){
 			cls = cls || 'active';
 			
@@ -1456,6 +1694,7 @@
 					.addClass(cls);
 			}
 		},
+		// set object elements to "inactive" based on class and parent passed or default
 		deactivate:function(cls,parent){
 			cls = cls || 'active';
 			
@@ -1473,6 +1712,7 @@
 			
 			return this;
 		},
+		// perform callback function on loading of images
 		imgLoad:function(callback,delay){
 			var len = this.length;
 		
@@ -1490,12 +1730,18 @@
 				});
 			}
 		},
+		// retrieve naturalHeight of first element in object
 		naturalHeight:function(){
 			return helpFuncs.naturalDimensions(this.get(0)).height;
 		},
+		// retrieve naturalWidth of first element in object
 		naturalWidth:function(){
 			return helpFuncs.naturalDimensions(this.get(0)).width;
 		},
+		/*
+		 * make all elements in object, and all children, unseletable
+		 * based on both CSS and attribute values
+		 */
 		unselectable:function(allowChildren){
 			var $self = this,
 				$nodes = (allowChildren ? $self : $self.add($self.find('*')));
@@ -1515,11 +1761,18 @@
 			
 			return this;
 		},
+		/*
+		 * remove styling for elements in object,
+		 * really just an easy wrapper of .css() for
+		 * removal of all styles or specific styles
+		 */
 		unstyle:function(styles){
 			switch($.type(styles)){
+				// if string, set css value to ''
 				case 'string':
 					return this.css(styles,'');
 					break;
+				// if array, set each css value in array to ''
 				case 'array':
 					var styleObj = {};
 					
@@ -1530,10 +1783,12 @@
 					return this.css(styleObj);
 					
 					break;
+				// if no parameter passed, remove all styles
 				case 'undefined':
 					return this.removeAttr('style');
 					
 					break;
+				// if some other type, do not process
 				default:
 					throwwError('Parameter passed in is not of appropriate type; processing aborted.');
 					
