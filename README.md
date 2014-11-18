@@ -120,7 +120,7 @@ Check if browser supports a specific feature, and there are many features that a
 + canvas *(HTML5 canvas element)*
 + classList *(classList attribute of element)*
 + cssAnimation *(CSS3 animations)*
-+ cssCalc *(CSS3 calc() size determination)*
++ cssCalc *(CSS3 value based on calc() function)*
 + cssColumn *(CSS3 columns)*
 + cssReflection *(CSS3 reflections)*
 + cssStylesheet *(HTML5 styleSheet attribute)*
