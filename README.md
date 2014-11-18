@@ -82,13 +82,36 @@ $.subscribe({
 ```
 
 Built-in published topics:
-+ windowSize
++ documentLoad *(published when document loads)*
+  + data provided is object with the following values:
+    + width *(document width)*
+    + height *(document height)*
++ documentResize *(published when document is resized)*
+  + data provided is object with the following values:
+    + width *(document width)*
+    + height *(document height)*
++ fullscreenChange *(published when elements enter or exit fullscreen state)*
+  + data provided is object with the following values:
+    + active *(boolean of whether fullscreen is active or not)*
+    + element *(if fullscreen, element that is fullscreen, else null)*
++ popstateChange *(published whenever popstate event is triggered)*
+  + data provided is object with the following values:
+    + event *(popstate event)*
+    + height *(window height)*
+    + originalState *(previous event state)*
+    + scrollTop *(window scrollTop)*
+    + width *(window width)*
++ windowLoad *(published when window is loaded)*
   + data provided is object with the following values:
     + width *(window width)*
     + height *(window height)*
-+ windowScroll
++ windowResize *(published when window is resized)*
   + data provided is object with the following values:
-    + scrollTop *(scrollTOp relative to top of document)*
+    + width *(window width)*
+    + height *(window height)*
++ windowScroll *(published when scrolling happens on the window object)*
+  + data provided is object with the following values:
+    + scrollTop *(scrollTop relative to top of document)*
 
 **$.unsubscribe()**
 
@@ -225,21 +248,57 @@ if($.supports('video').mp4){
 
 **$.window()**
 
-Provide window-specific attribute, based on the parameter passed. To execute the method, pass in the string value of the attribute (a parameter is always required). The following parameters can be passed:
-+ width
-+ height
-+ scrollTop
+Provide window-specific attributes, based on the parameter passed. To execute the method, pass in the string value of the attribute (a parameter is optional). The following parameters can be passed:
 + dimensions
   + returns object with the following values:
     + width
     + height
++ enterFullscreen *(only if Fullscreen API is supported)*
+  + must pass element as second parameter
++ exitFullscreen
++ getFullscreenElement
+  + returns *null* if not fullscreen 
++ height
++ isFullscreen
++ scrollTop
++ width
+
+If no parameter is passed, then the jQuery object of the window is retrieved.
 
 Example:
 ```html
-var dims = $.window('dimensions');
+var dims = $.window('dimensions'),
+    video = $('video').get(0),
+    $window = $.window();
 
 if((dims.width > 100) && ($.window('scrollTop') > 300)){
-  // do some wacky window stuff
+  $.window('enterFullscreen',video);
+
+  console.log($.window('isFullscreen'));
+  // returns true, assuming Fullscreen API is supported
+}
+```
+
+**$.document()**
+
+Provide document-specific attributes, based on the parameter passed. To execute the method, pass in the string value of the attribute (a parameter is optional). The following parameters can be passed:
++ dimensions
+  + returns object with the following values:
+    + width
+    + height
++ height
++ width
+
+If no parameter is passed, then the jQuery object of the document is retrieved.
+
+Example:
+```html
+var dims = $.document('dimensions'),
+    document = $.document();
+
+if(dims.width > 100){
+  console.log($.document('width'));
+  // returns full height of document
 }
 ```
 
@@ -492,8 +551,8 @@ $('.NoColors').unstyle(['background-color','color']);
 ### Future goals
 
 While the scope of this will remain small, there are a few points of expansion I hope to eventually target:
-+ Enhance Promise functionality (adding deferreds)
-+ Expansion of window attributes
++ Enhance Promise functionality (adding timeout function)
++ Expansion of window and document attributes
 + Expansion of feature detection
 + More built-in published topics
 + Any recommendations
