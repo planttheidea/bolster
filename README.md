@@ -9,9 +9,9 @@ jQuery is a wonderful, magical, omnipresent library that makes the lives of most
 
 ### Size
 
-+ Uncompressed: 45.03KB
-+ Minified: 14.02KB
-+ Minified and gzipped: 4.56KB
++ Uncompressed: 45.21KB
++ Minified: 14.07KB
++ Minified and gzipped: 4.58KB
 
 ### Components
 
