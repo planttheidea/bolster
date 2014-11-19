@@ -305,7 +305,7 @@ Check if browser supports a specific feature, and there are many features that a
     + threeD
 + transform2d *(CSS3 2D Transforms)*
 + transform3d *(CSS3 3D Transforms)*
-+ transform3d *(CSS3 Transitions)*
++ transition *(CSS3 Transitions)*
 + video *(HTML5 video element type)*
   + returns object with boolean values for:
     + mp4
