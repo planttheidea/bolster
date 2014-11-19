@@ -46,7 +46,7 @@ If no parameter is passed, then the jQuery object of the document is retrieved.
 Example:
 ```html
 var dims = $.document('dimensions'),
-    document = $.document();
+    $document = $.document();
 
 if(dims.width > 100){
   console.log($.document('width'));
