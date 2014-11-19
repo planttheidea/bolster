@@ -23,6 +23,7 @@
 			var testElement = {
 					audio:document.createElement('audio'),
 					canvas:document.createElement('canvas'),
+					document:(document.documentElement || document.body),
 					div:document.createElement('div'),
 					input:document.createElement('input'),
 					p:document.createElement('p'),
@@ -35,7 +36,7 @@
 						var support = false;
 						
 						for(var i = prefixArray.length; i--;){
-							if(testElement.div.style[prefixArray[i]] !== 'undefined'){
+							if(prefixArray[i] in testElement.document.style){
 								support = true;
 								break;
 							}
@@ -491,13 +492,13 @@
 				touchEvents = !!(('ontouchstart' in document.documentElement) || window.navigator.msMaxTouchPoints),
 				// CSS3 2D transforms
 				transform2d = (function(){
-					return newCss3Property(['transform','webkitTransform','MozTransform','msTransform','OTransform']);
+					return newCss3Property(['transform','WebkitTransform','MozTransform','msTransform','OTransform']);
 				})(),
 				// CSS3 3D transforms
 				transform3d = (function(){
 					if(transform2d){
 						try {
-							var prefixedTransforms = ['transform','webkitTransform','MozTransform','msTransform','OTransform'],
+							var prefixedTransforms = ['transform','WebkitTransform','MozTransform','msTransform','OTransform'],
 								support = false;
 														
 							for(var i = prefixedTransforms.length; i--;){
@@ -514,6 +515,10 @@
 					} else {
 						return false;
 					}
+				})(),
+				// CSS transitions
+				transition = (function(){
+					return newCss3Property(['transition','WebkitTransition','MozTransition','OTransition']);
 				})(),
 				// HTML5 video element, each possible format
 				videoMP4 = !!(testElement.video.canPlayType && testElement.video.canPlayType('video/mp4;').replace(/no/,'')),
@@ -782,6 +787,10 @@
 				return transform3d;
 			}
 			
+			function prv_getTransition(){
+				return transition;
+			}
+			
 			function prv_getVideo(){
 				return {
 					mp4:videoMP4,
@@ -856,6 +865,7 @@
 				transform:prv_getTransform,
 				transform2d:prv_getTransform2d,
 				transform3d:prv_getTransform3d,
+				transition:prv_getTransition,
 				video:prv_getVideo,
 				videoMP4:prv_getVideoMP4,
 				videoOGG:prv_getVideoOGG,
