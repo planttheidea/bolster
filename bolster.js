@@ -3,7 +3,7 @@
  * Copyright 2014 Tony Quetano under the terms of the MIT
  * license found at https://github.com/planttheidea/bolster/MIT_License.txt
  *
- * Bolster.js - An augmentation library for jQuery
+ * bolster.js - An augmentation library for jQuery
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -516,7 +516,6 @@
 						return false;
 					}
 				})(),
-				// CSS transitions
 				transition = (function(){
 					return newCss3Property(['transition','WebkitTransition','MozTransition','OTransition']);
 				})(),
@@ -947,9 +946,16 @@
 			}
 			
 			// performs subscription (abstrated for the same reason as above unsubscription)
-			function prv_subscribeTopic(topic,newToken,fn){
+			function prv_subscribeTopic(topic,newToken,fn,once,name){
 				if($.type(topics[topic]) !== 'array'){
 					topics[topic] = [];
+				}
+				
+				if(once){
+					fn = function(){
+						fn.call();
+						prv_unsubscribeName(name);
+					};
 				}
 			
 				topics[topic].push({
@@ -977,12 +983,12 @@
 				// subscriptions called differently depending on typ
 				switch($.type(subscribeObj.topic)){
 					case 'string':
-						prv_subscribeTopic(subscribeObj.topic,subscribeObj.token,subscribeObj.fn);
+						prv_subscribeTopic(subscribeObj.topic,subscribeObj.token,subscribeObj.fn,subscribeObj.once,subscribeObj.name);
 
 						break;
 					case 'array':					
 						for(var i = subscribeObj.topic.length; i--;){
-							prv_subscribeTopic(subscribeObj.topic[i],subscribeObj.token,subscribeObj.fn);
+							prv_subscribeTopic(subscribeObj.topic[i],subscribeObj.token,subscribeObj.fn,subscribeObj.once,subscribeObj.name);
 						};
 						
 						break;
@@ -1792,7 +1798,7 @@
 					break;
 				// if some other type, do not process
 				default:
-					throwwError('Parameter passed in is not of appropriate type; processing aborted.');
+					throwError('Parameter passed in is not of appropriate type; processing aborted.');
 					
 					return this;
 					
