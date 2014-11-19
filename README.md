@@ -336,6 +336,8 @@ Subscribe to a topic, so that a specific function you pass in will be executed u
   + If subscribing to multiple topics, provide them as strings in an array
 + name *(string, required)*
   + Unique name of subscription
++ once *(boolean, optional)*
+  + Perform the subscription funcion only once (default is false)
 + fn *(function, required)*
   + Function that will be executed upon each publishing of given topic
 
