@@ -343,6 +343,8 @@
 				inputWeek = (function(){
 					return newHtml5Input('week');
 				})(),
+				// JSON functions like .parse() and .stringify()
+				json = !!(JSON && ($.type(JSON.parse) === 'function')),
 				// HTML5 localStorage API
 				localStorage = (function(){
 					try {
@@ -688,6 +690,10 @@
 				return indexedDB;
 			}
 			
+			function prv_getJson(){
+				return json;
+			}
+			
 			function prv_getGradient(){
 				return {
 					linear:linearGradient,
@@ -846,6 +852,7 @@
 				html5Attribute:prv_getHtml5Attribute,
 				html5Input:prv_getHtml5Input,
 				indexedDB:prv_getIndexedDB,
+				json:prv_getJson,
 				linearGradient:prv_getLinearGradient,
 				localStorage:prv_getLocalStorage,
 				mediaQueries:prv_getMediaQueries,
@@ -1167,7 +1174,7 @@
 					hostname:hn,
 					href:hr,
 					page:p,
-					queryString:qs,
+					querystring:qs,
 					scrollTop:t,
 					width:w
 				};
@@ -1325,7 +1332,7 @@
 				href:prv_getHref,
 				isFullscreen:prv_isFullscreenActive,
 				page:prv_getPage,
-				queryString:prv_getQueryString,
+				querystring:prv_getQueryString,
 				scrollTop:prv_getScrollTop,
 				width:prv_getWidth,
 				window:prv_getWindow
@@ -1342,34 +1349,6 @@
 				u = document.documentURI,
 				styles = document.styleSheets,
 				styleSets = document.styleSheetSets,
-				c = (function(){
-					var cookieArray = document.cookie.split(';'),
-						cookieObj = {},
-						curName;
-					
-					for(var i = 0, len = cookieArray.length; i < len; i++){
-						var c = cookieArray[i].split('=');
-							
-						switch(c[0]){
-							case 'expires':
-							case 'domain':
-							case 'path':
-							case 'secure':
-								addMe = false;
-								cookieObj[curName] += ';' + c[1];
-								break;
-							case '':
-								break;
-							default:
-								addMe = true;
-								curName = c[0];
-								cookieObj[curName] = c[1];
-								break;
-						}
-					}
-					
-					return cookieObj;
-				})(),
 				r = document.referrer;
 			
 			// functions to retrieve document attributes
@@ -1377,40 +1356,18 @@
 				return cs;
 			}
 			
-			function prv_deleteCookie(cookies){
-				switch($.type(cookies)){
-					case 'array':
-						for(var i = cookies.length; i--;){
-							delete c[cookies[i]];
-							document.cookie = encodeURIComponent(cookies[i]) + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-						}
-						
-						break;
-					case 'string':
-						delete c[cookies];
-						document.cookie = encodeURIComponent(cookies) + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-						
-						break;
-					default:
-						break;
-				}
-			}
-			
 			function prv_getAnchors(){
 				return document.anchors;
-			}
-			
-			function prv_getCookie(){
-				return c;
 			}
 			
 			function prv_getAttributes(){
 				return {
 					anchors:document.anchors,
 					characterSet:cs,
-					cookies:c,
 					forms:document.forms,
 					height:h,
+					images:document.images,
+					links:document.links,
 					referrer:r,
 					styleSheets:styles,
 					styleSheetSets:styleSets,
@@ -1464,29 +1421,6 @@
 				return w;
 			}
 			
-			function prv_setCookie(cookies){				
-				switch($.type(cookies)){
-					case 'object':
-						for(var key in cookies){
-							if(cookies.hasOwnProperty(key)){
-								c[key] = cookies[key];
-								document.cookie = encodeURIComponent(key) + '=' + encodeURIComponent(c[key]);
-							}
-						}
-						
-						break;
-					case 'string':
-						var cArr = cookies.split('=');
-						
-						c[cArr[0]] = cArr[1];
-						document.cookie = encodeURIComponent(cArr[0]) + '=' + encodeURIComponent(cArr[1]);
-						
-						break;
-					default:
-						break;
-				}
-			}
-			
 			function prv_setDimensions(){
 				w = $document.width();
 				h = $document.height();
@@ -1519,15 +1453,12 @@
 				anchors:prv_getAnchors,
 				attributes:prv_getAttributes,
 				characterSet:prv_getCharacterSet,
-				cookies:prv_getCookie,
-				deleteCookie:prv_deleteCookie,
 				document:prv_getDocument,
 				forms:prv_getForms,
 				height:prv_getHeight,
 				images:prv_getImages,
 				links:prv_getLinks,
 				referrer:prv_getReferrer,
-				setCookie:prv_setCookie,
 				styleSheets:prv_getStyleSheets,
 				styleSheetSets:prv_getStyleSheetSets,
 				title:prv_getTitle,
@@ -1540,6 +1471,7 @@
 			// initial tests for support
 			var ssSupport = supports.sessionStorage(),
 				lsSupport = supports.localStorage(),
+				jsonSupport = supports.json(),
 				// create empty objects
 				tempStorage = {},
 				permStorage = {},
@@ -1591,9 +1523,11 @@
 									if(keys.hasOwnProperty(key)){
 										// assign to correct internal object and storage type
 										if(perm){
-											window.localStorage[key] = permStorage[key] = keys[key];
+											permStorage[key] = keys[key]
+											window.localStorage[key] = (($.type(keys[key]) === 'string') ? keys[key] : JSON.stringify(keys[key]));
 										} else {
-											window.sessionStorage[key] = tempStorage[key] = keys[key];
+											tempStorage[key] = keys[key];
+											window.sessionStorage[key] = (($.type(keys[key]) === 'string') ? keys[key] : JSON.stringify(keys[key]));
 										}
 									}
 								}
@@ -1606,7 +1540,7 @@
 						return function(perm,keys){								
 							// go through each object key and assign it to document.cookie and internal object			
 							if($.type(keys) === 'object'){
-								for(var key in keys){
+								for(var key in keys){									
 									if(keys.hasOwnProperty(key)){
 										var value = setCookieValue(keys[key],perm);
 										
@@ -1621,7 +1555,7 @@
 										 * cookies do not have different types, but different
 										 * expiration dates create session vs permanent
 										 */
-										document.cookie = encodeURIComponent(key) + '=' + value;
+										document.cookie = encodeURIComponent(key) + '=' + JSON.stringify(value);
 									}
 								}
 							} else {
@@ -1764,22 +1698,22 @@
 				}
 			}
 			
-			function prv_localStorage(arguments){
-				switch(arguments.length){
+			function prv_localStorage(args){
+				switch(args.length){
 					case 0:
 						return prv_getStorage('local');
 						
 						break;
 					case 1:
-						if($.type(arguments[0]) === 'object'){
-							setStorage(true,arguments[0]);
+						if($.type(args[0]) === 'object'){
+							setStorage(true,args[0]);
 						} else {
-							return prv_getStorage('local',arguments[0]);
+							return prv_getStorage('local',args[0]);
 						}
 						
 						break;
 					case 2:
-						setStorage(true,arguments[0],arguments[1]);
+						setStorage(true,args[0],args[1]);
 						
 						break;
 					default:
@@ -1789,22 +1723,22 @@
 				}
 			}
 			
-			function prv_sessionStorage(arguments){
-				switch(arguments.length){
+			function prv_sessionStorage(args){
+				switch(args.length){
 					case 0:
 						return prv_getStorage('session');
 						
 						break;
 					case 1:
-						if($.type(arguments[0]) === 'object'){
-							setStorage(false,arguments[0]);
+						if($.type(args[0]) === 'object'){
+							setStorage(false,args[0]);
 						} else {
-							return prv_getStorage('session',arguments[0]);
+							return prv_getStorage('session',args[0]);
 						}
 						
 						break;
 					case 2:
-						setStorage(false,arguments[0],arguments[1]);
+						setStorage(false,args[0],args[1]);
 						
 						break;
 					default:
@@ -1814,8 +1748,8 @@
 				}
 			}
 			
-			function prv_removeStorage(arguments){
-				switch(arguments.length){
+			function prv_removeStorage(args){
+				switch(args.length){
 					case 0:
 						window.localStorage.clear();
 						window.sessionStorage.clear();
@@ -1824,24 +1758,24 @@
 						
 						break;
 					case 1:
-						switch($.type(arguments[0])){
+						switch($.type(args[0])){
 							case 'string':
 							case 'array':
-								removeStorage(true,arguments[0]);
-								removeStorage(false,arguments[0]);
+								removeStorage(true,args[0]);
+								removeStorage(false,args[0]);
 								
 								break;
 							case 'object':
-								if($.type(arguments[0].type) === 'undefined'){
-										removeStorage(true,arguments[0].keys);
-										removeStorage(false,arguments[0].keys);
+								if($.type(args[0].type) === 'undefined'){
+										removeStorage(true,args[0].keys);
+										removeStorage(false,args[0].keys);
 								} else {
-									switch(arguments[0].type){
+									switch(args[0].type){
 										case 'local':
-											removeStorage(true,arguments[0].keys);
+											removeStorage(true,args[0].keys);
 											break;
 										case 'session':
-											removeStorage(false,arguments[0].keys);
+											removeStorage(false,args[0].keys);
 											break;
 										default:
 											throwError('Invalid value for storage type.');
@@ -1852,18 +1786,18 @@
 						
 						break;
 					case 2:
-						switch(arguments[1]){
+						switch(args[1]){
 							case 'local':
-								removeStorage(true,arguments[0]);
+								removeStorage(true,args[0]);
 								
 								break;
 							case 'session':
-								removeStorage(false,arguments[0]);
+								removeStorage(false,args[0]);
 								
 								break;
 							default:
-								removeStorage(true,arguments[0]);
-								removeStorage(false,arguments[0]);
+								removeStorage(true,args[0]);
+								removeStorage(false,args[0]);
 								
 								break;
 						}
