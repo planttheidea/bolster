@@ -1473,8 +1473,28 @@
 				lsSupport = supports.localStorage(),
 				jsonSupport = supports.json(),
 				// create empty objects
-				tempStorage = {},
-				permStorage = {},
+				tempStorage = (function(){
+					var tempObj = {};
+					
+					for(var i = 0,len = window.sessionStorage.length; i < len; i++){
+						var key = window.localStorage.key(i);
+						
+						tempObj[key] = window.sessionStorage[key];
+					}
+					
+					return tempObj;
+				})(),
+				permStorage = (function(){
+					var tempObj = {};
+					
+					for(var i = 0,len = window.localStorage.length; i < len; i++){
+						var key = window.localStorage.key(i);
+						
+						tempObj[key] = window.localStorage[key];
+					}
+					
+					return tempObj;
+				})(),
 				// function to create expiry attribute if permanent
 				setCookieExpiration = function(perm){
 					return (perm ? '; expires=Fri, 31 Dec 9999 23:59:59 GMT' : '');
