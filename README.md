@@ -22,6 +22,7 @@ jQuery is a wonderful, magical, omnipresent library that makes the lives of most
   + Document attributes
   + Promises / deferreds
   + Retrieve page name
+  + localStorage / sessionStorage with cookie fallback
 + $(selector) methods
   + Setting / removing / detecting "active" elements
   + Completion of image loading
@@ -34,11 +35,35 @@ jQuery is a wonderful, magical, omnipresent library that makes the lives of most
 **$.document()**
 
 Provide document-specific attributes, based on the parameter passed. To execute the method, pass in the string value of the attribute (a parameter is optional). The following parameters can be passed:
++ anchors
++ attributes
+  + returns object with the following values:
+    + anchors
+    + characterSet
+    + forms
+    + height
+    + images
+    + links
+    + referrer
+    + styleSheets
+    + styleSheetSets
+    + title
+    + uri
+    + width
++ characterSet
 + dimensions
   + returns object with the following values:
     + width
     + height
++ forms
 + height
++ images
++ links
++ referrer
++ styleSheets
++ styleSheetSets
++ title
++ uri
 + width
 
 If no parameter is passed, then the jQuery object of the document is retrieved.
@@ -54,11 +79,32 @@ if(dims.width > 100){
 }
 ```
 
-**$.page()**
-Returns current page without the full path. To execute the method, simple call it (no parameters are accepted):
+**$.localStorage()**
+Assigns or retrieves existing storage items that are considered "permanent" (meaning they persist upon closure of the session), depending on the parameters that are passed in. To execute assignment, pass in any one of the following parameters:
++ key,value *(2 string parameters that are comma-separated, optional)*
++ object containing 1 to many key:value pairs *(1 object parameter only, optional)*
+
+If no parameter is passed, all localStorage items will be retrieved and returned as an object of key:value pairs.
+
+Examples:
 ```html
-console.log($.page());
-// if on main page, logs "index.html"
+$.localStorage('foo','bar');
+$.localStorage({
+  foo:'bar',
+  beyond:'reason'
+});
+```
+
+To execute retrieval, pass in any one of the following parameters:
++ key *(1 string parameter)*
+  + returns value of key
++ array of keys *(1 array parameter)*
+  + returns object of key:value pairs
+
+Examples:
+```html
+$.localStorage('foo'); // returns bar
+$.localStorage(['foo','beyond']); // returns {foo:'bar',beyond:'reason'}
 ```
 
 **$.pledge()**
@@ -204,6 +250,44 @@ $('div').on('click',function(){
       width:$self.width()
     }
   });
+});
+```
+
+**$.removeStorage()**
+Removes existing items stored with $.localStorage() and $.sessionStorage(), depending on the parameters passed in. To execute the method, pass in the following parameters:
++ key(s) *(string / array / object, optional)*
+  + if string, will remove single key
+  + if array, will remove each key in array
+  + if object, will remove each key in value of "keys"
+    + can also pass in type as value of "type"
++ type *(string, optional)*
+  + if passed in, will limit removal to a specific type (local vs session)
+
+If no parameter is passed, all localStorage and sessionStorage items will be removed.
+
+Examples:
+```html
+$.removeStorage('foo'); // removes key of "foo" from both localStorage and sessionStorage
+$.removeStorage(['foo','beyond'],'local'); // removes keys "foo" and "beyond" from localStorage only
+$.removeStorage({
+  keys:'beyond',
+  type:'session'
+}); // removes key "beyond" from sessionStorage only
+```
+
+**$.sessionStorage()**
+Assigns or retrieves existing storage items that are considered "temporary" (meaning they expire upon closure of the session), depending on the parameters that are passed in. To execute assignment, pass in any one of the following parameters:
++ key,value *(2 string parameters that are comma-separated, optional)*
++ object containing 1 to many key:value pairs *(1 object parameter only, optional)*
+
+If no parameter is passed, all sessionStorage items will be retrieved and returned as an object of key:value pairs.
+
+Examples:
+```html
+$.sessionStorage('foo','bar');
+$.sessionStorage({
+  foo:'bar',
+  beyond:'reason'
 });
 ```
 
@@ -362,8 +446,7 @@ $.subscribe({
 Built-in published topics:
 + documentLoad *(published when document loads)*
   + data provided is object with the following values:
-    + width *(document width)*
-    + height *(document height)*
+    + everything retrievable through $.document('attributes')
 + documentResize *(published when document is resized)*
   + data provided is object with the following values:
     + width *(document width)*
@@ -381,8 +464,7 @@ Built-in published topics:
     + width *(window width)*
 + windowLoad *(published when window is loaded)*
   + data provided is object with the following values:
-    + width *(window width)*
-    + height *(window height)*
+    + everything retrievable from $.window('attributes')
 + windowResize *(published when window is resized)*
   + data provided is object with the following values:
     + width *(window width)*
@@ -408,6 +490,18 @@ $.unsubscribe({
 **$.window()**
 
 Provide window-specific attributes, based on the parameter passed. To execute the method, pass in the string value of the attribute (a parameter is optional). The following parameters can be passed:
++ attributes
+  + returns object with the following values:
+    + fullscreenActive
+    + fullscreenElement
+    + hash
+    + height
+    + hostname
+    + href
+    + page
+    + querystring
+    + scrollTop
+    + width
 + dimensions
   + returns object with the following values:
     + width
@@ -415,10 +509,15 @@ Provide window-specific attributes, based on the parameter passed. To execute th
 + enterFullscreen *(only if Fullscreen API is supported)*
   + must pass element as second parameter
 + exitFullscreen
-+ getFullscreenElement
-  + returns *null* if not fullscreen 
++ fullscreenElement
+  + returns *null* if not fullscreen
++ hash
 + height
++ hostname
++ href
 + isFullscreen
++ page
++ querystring
 + scrollTop
 + width
 
