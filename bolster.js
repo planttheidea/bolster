@@ -1112,7 +1112,42 @@
 				})(),
 				// initial fullscreen values
 				f = fullscreen.element(),
-				a = fullscreen.active();
+				a = fullscreen.active(),
+				/*
+				 * retrieve page without full pathing, which
+				 * is different depending on whether lastIndexOf
+				 * is supported by the browser
+				 */
+				getPage = (function(){
+					if(!Array.prototype.lastIndexOf){
+						return function(pg){
+							var url = pg.split('/');									
+							return url[url.length-1].split('#')[0].split('?')[0];
+						};
+					} else {
+						return function(pg){
+							return pg.substring(pg.lastIndexOf('/')+1).split('#')[0].split('?')[0];
+						}
+					}
+				})(),
+				hr = window.location.href,
+				p = getPage(hr),
+				ha = window.location.hash.replace('#',''),
+				hn = (window.location.hostname || window.location.host),
+				setQs = function(){
+					var qsArray = window.location.search.substr(1).split('&'),
+						qsObj = {};
+					
+					for(var i = 0, len = qsArray.length; i < len; i++){
+						var q = qsArray[i].split('=');
+							if(q[0].length > 0){
+								qsObj[q[0]] = q[1];
+							}
+					}
+					
+					return qsObj;
+				},
+				qs = setQs();
 			
 			// functions to access above values / functions through API
 			function prv_fullscreenEnter(el){
@@ -1122,25 +1157,20 @@
 			function prv_fullscreenExit(){
 				return fullscreen.exit();
 			}
-				
-			function prv_getFullscreenElement(){
-				return f;
-			}
-				
-			function prv_getWindow(){
-				return $window;
-			}
 			
-			function prv_getWidth(){
-				return w;
-			}
-			
-			function prv_getHeight(){
-				return h;
-			}
-			
-			function prv_getScrollTop(){
-				return t;
+			function prv_getAttributes(e){
+				return {
+					fullscreenActive:a,
+					fullscreenElement:f,
+					hash:ha,
+					height:h,
+					hostname:hn,
+					href:hr,
+					page:p,
+					queryString:qs,
+					scrollTop:t,
+					width:w
+				};
 			}
 			
 			function prv_getDimensions(){
@@ -1148,6 +1178,46 @@
 					width:w,
 					height:h
 				};
+			}
+				
+			function prv_getFullscreenElement(){
+				return f;
+			}
+			
+			function prv_getHash(){
+				return ha;
+			}
+			
+			function prv_getHeight(){
+				return h;
+			}
+			
+			function prv_getHostname(){
+				return hn;
+			}
+			
+			function prv_getHref(){
+				return hr;
+			}
+			
+			function prv_getPage(){
+				return p;
+			}
+			
+			function prv_getQueryString(){
+				return qs;
+			}
+			
+			function prv_getScrollTop(){
+				return t;
+			}
+			
+			function prv_getWidth(){
+				return w;
+			}
+				
+			function prv_getWindow(){
+				return $window;
 			}
 				
 			function prv_isFullscreenActive(){
@@ -1176,10 +1246,26 @@
 				pubsub.publish({
 					topic:'fullscreenChange',
 					data:{
-						active:a,
-						element:f
+						fullscreenActive:a,
+						fullscreenElement:f
 					}
 				});
+			}
+			
+			function prv_setHash(){
+				ha = window.location.hash.replace('#','');
+			}
+			
+			function prv_setHref(){
+				hr = window.location.href;
+			}
+			
+			function prv_setPage(){
+				p = getPage(window.location.href);
+			}
+			
+			function prv_setQueryString(){
+				setQs();
 			}
 			
 			function prv_setScrollTop(){
@@ -1203,15 +1289,10 @@
 						// publish all window attributes on load
 						pubsub.publish({
 							topic:'windowLoad',
-							data:{
-								event:e,
-								height:h,
-								originalState:e.originalEvent.state,
-								scrollTop:t,
-								width:w
-							}
+							data:prv_getAttributes(e)
 						});
 					},
+					'hashchange.bolster.setWindowAttributes':prv_setHash,
 					'resize.bolster.setWindowAttributes':prv_setDimensions,
 					'popstate.bolster.setWindowAttributes':function(e){
 						// publish new attributes onpopstate
@@ -1222,18 +1303,29 @@
 								originalState:e.originalEvent.state
 							}
 						});
+						
+						prv_setHash();
+						prv_setHref();
+						prv_setQueryString();
+						prv_setPage();
 					},
 					'scroll.bolster.setWindowAttributes':prv_setScrollTop
 				});
 			
 			// API to get values
 			return {
+				attributes:prv_getAttributes,
 				dimensions:prv_getDimensions,
 				enterFullscreen:prv_fullscreenEnter,
 				exitFullscreen:prv_fullscreenExit,
-				getFullscreenElement:prv_getFullscreenElement,
+				fullscreenElement:prv_getFullscreenElement,
+				hash:prv_getHash,
 				height:prv_getHeight,
+				hostname:prv_getHostname,
+				href:prv_getHref,
 				isFullscreen:prv_isFullscreenActive,
+				page:prv_getPage,
+				queryString:prv_getQueryString,
 				scrollTop:prv_getScrollTop,
 				width:prv_getWidth,
 				window:prv_getWindow
@@ -1245,19 +1337,154 @@
 			var $document = $(document),
 				// get initial document values
 				w = $document.width(),
-				h = $document.height();
+				h = $document.height(),
+				cs = (document.characterSet || document.charset),
+				u = document.documentURI,
+				styles = document.styleSheets,
+				styleSets = document.styleSheetSets,
+				c = (function(){
+					var cookieArray = document.cookie.split(';'),
+						cookieObj = {},
+						curName;
+					
+					for(var i = 0, len = cookieArray.length; i < len; i++){
+						var c = cookieArray[i].split('=');
+							
+						switch(c[0]){
+							case 'expires':
+							case 'domain':
+							case 'path':
+							case 'secure':
+								addMe = false;
+								cookieObj[curName] += ';' + c[1];
+								break;
+							case '':
+								break;
+							default:
+								addMe = true;
+								curName = c[0];
+								cookieObj[curName] = c[1];
+								break;
+						}
+					}
+					
+					return cookieObj;
+				})(),
+				r = document.referrer;
 			
-			// function to retrieve document attributes
+			// functions to retrieve document attributes
+			function prv_getCharacterSet(){
+				return cs;
+			}
+			
+			function prv_deleteCookie(cookies){
+				switch($.type(cookies)){
+					case 'array':
+						for(var i = cookies.length; i--;){
+							delete c[cookies[i]];
+							document.cookie = encodeURIComponent(cookies[i]) + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+						}
+						
+						break;
+					case 'string':
+						delete c[cookies];
+						document.cookie = encodeURIComponent(cookies) + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+						
+						break;
+					default:
+						break;
+				}
+			}
+			
+			function prv_getAnchors(){
+				return document.anchors;
+			}
+			
+			function prv_getCookie(){
+				return c;
+			}
+			
+			function prv_getAttributes(){
+				return {
+					anchors:document.anchors,
+					characterSet:cs,
+					cookies:c,
+					forms:document.forms,
+					height:h,
+					referrer:r,
+					styleSheets:styles,
+					styleSheetSets:styleSets,
+					title:document.title,
+					uri:u,
+					width:w
+				};
+			}
+			
 			function prv_getDocument(){
 				return $document;
+			}
+			
+			function prv_getDocumentURI(){
+				return u;
+			}
+			
+			function prv_getForms(){
+				return document.forms;
+			}
+			
+			function prv_getHeight(){
+				return h;
+			}
+			
+			function prv_getImages(){
+				return document.images;
+			}
+			
+			function prv_getLinks(){
+				return document.links;
+			}
+			
+			function prv_getReferrer(){
+				return r;
+			}
+			
+			function prv_getStyleSheets(){
+				return styles;
+			}
+			
+			function prv_getStyleSheetSets(){
+				return styleSets;
+			}
+			
+			function prv_getTitle(){
+				return document.title;
 			}
 			
 			function prv_getWidth(){
 				return w;
 			}
 			
-			function prv_getHeight(){
-				return h;
+			function prv_setCookie(cookies){				
+				switch($.type(cookies)){
+					case 'object':
+						for(var key in cookies){
+							if(cookies.hasOwnProperty(key)){
+								c[key] = cookies[key];
+								document.cookie = encodeURIComponent(key) + '=' + encodeURIComponent(c[key]);
+							}
+						}
+						
+						break;
+					case 'string':
+						var cArr = cookies.split('=');
+						
+						c[cArr[0]] = cArr[1];
+						document.cookie = encodeURIComponent(cArr[0]) + '=' + encodeURIComponent(cArr[1]);
+						
+						break;
+					default:
+						break;
+				}
 			}
 			
 			function prv_setDimensions(){
@@ -1268,8 +1495,8 @@
 				pubsub.publish({
 					topic:'documentResize',
 					data:{
-						width:w,
-						height:h
+						height:h,
+						width:w
 					}
 				});
 			}
@@ -1282,20 +1509,374 @@
 						// publish all document attributes on load
 						pubsub.publish({
 							topic:'documentLoad',
-							data:{
-								width:w,
-								height:h
-							}
+							data:prv_getAttributes()
 						});
 					},
 					'resize.bolster.setDocumentAttributes':prv_setDimensions
 				});
 			
 			return {
+				anchors:prv_getAnchors,
+				attributes:prv_getAttributes,
+				characterSet:prv_getCharacterSet,
+				cookies:prv_getCookie,
+				deleteCookie:prv_deleteCookie,
 				document:prv_getDocument,
+				forms:prv_getForms,
 				height:prv_getHeight,
+				images:prv_getImages,
+				links:prv_getLinks,
+				referrer:prv_getReferrer,
+				setCookie:prv_setCookie,
+				styleSheets:prv_getStyleSheets,
+				styleSheetSets:prv_getStyleSheetSets,
+				title:prv_getTitle,
+				uri:prv_getDocumentURI,
 				width:prv_getWidth
 			}
+		})(),
+		// build module for $.storage()
+		storage = (function(){
+			// initial tests for support
+			var ssSupport = supports.sessionStorage(),
+				lsSupport = supports.localStorage(),
+				// create empty objects
+				tempStorage = {},
+				permStorage = {},
+				// function to create expiry attribute if permanent
+				setCookieExpiration = function(perm){
+					return (perm ? '; expires=Fri, 31 Dec 9999 23:59:59 GMT' : '');
+				},
+				// function to build the full value
+				setCookieValue = function(cookie,perm){
+					var arr = cookie.replace('; ',';').split(';').sort(),
+						len = arr.length,
+						value = encodeURIComponent(arr[0]) + setCookieExpiration(perm);
+					
+					// create each attribute separately
+					if(len > 1){
+						for(var i = len; i--;){
+							var tempArr = arr[i].split('=');
+							
+							switch(tempArr[0]){
+								case 'path':
+								case 'domain':
+									value += ('; '+ tempArr[0] + '=' + tempArr[1]);
+									break;
+								case 'secure':
+									value += '; secure';
+									break;
+								default:
+									break;
+							}
+						}
+					}
+					
+					// return completed string
+					return value;
+				},
+				/*
+				 * function to assign storage, which is a different function
+				 * depending on whether localStorage/sessionStorage is supported
+				 * or not, so we return a function in an IIFE that is specific
+				 * to support
+				 */
+				setStorage = (function(){
+					// support for HTML5 storage
+					if(ssSupport && lsSupport){
+						return function(perm,keys){
+							// go through each object key and assign it to localStorage and internal object
+							if($.type(keys) === 'object'){
+								for(var key in keys){
+									if(keys.hasOwnProperty(key)){
+										// assign to correct internal object and storage type
+										if(perm){
+											window.localStorage[key] = permStorage[key] = keys[key];
+										} else {
+											window.sessionStorage[key] = tempStorage[key] = keys[key];
+										}
+									}
+								}
+							} else {
+								throwError('Parameter passed must be an object.');
+							}
+						};
+					// fallback to cookies
+					} else {
+						return function(perm,keys){								
+							// go through each object key and assign it to document.cookie and internal object			
+							if($.type(keys) === 'object'){
+								for(var key in keys){
+									if(keys.hasOwnProperty(key)){
+										var value = setCookieValue(keys[key],perm);
+										
+										// assign to correct internal object
+										if(perm){
+											permStorage[key] = value.split('; ')[0];
+										} else {
+											tempStorage[key] = value.split('; ')[0];
+										}
+										
+										/*
+										 * cookies do not have different types, but different
+										 * expiration dates create session vs permanent
+										 */
+										document.cookie = encodeURIComponent(key) + '=' + value;
+									}
+								}
+							} else {
+								throwError('Parameter passed must be an object.');
+							}
+						};
+					}
+				})(),
+				// function to remove storage item
+				removeStorageItem = function(perm,item){
+					if(perm && permStorage.hasOwnProperty(item)){
+						window.localStorage.removeItem(item);
+						delete permStorage[item];
+					} else if(tempStorage.hasOwnProperty(item)){
+						window.sessionStorage.removeItem(item);
+						delete tempStorage[item];
+					}
+				},
+				// function to remove cookie
+				removeCookieItem = function(perm,item){
+					if(perm && permStorage.hasOwnProperty(item)){
+						document.cookie = encodeURIComponent(item) + permStorage[item].split('; ').push('; expires=Thu, 01 Jan 1970 00:00:00 GMT').sort().join('; ');
+						delete permStorage[item];
+					} else if(tempStorage.hasOwnProperty(item)){
+						document.cookie = encodeURIComponent(item) + tempStorage[item].split('; ').push('; expires=Thu, 01 Jan 1970 00:00:00 GMT').sort().join('; ');
+						delete tempStorage[item];
+					}
+				},
+				/*
+				 * function to remove storage, which is different
+				 * depending on support, just as above
+				 */
+				removeStorage = (function(){
+					// HTML5 storage support
+					if(ssSupport && lsSupport){
+						return function(perm,keys){
+							switch($.type(keys)){
+								case 'array':
+									for(var i = keys.length; i--;){
+										// remove each item from correct internal object and storage type
+										removeStorageItem(perm,keys[i]);
+									}
+									
+									break;
+								case 'string':
+									// remove item from correct internal object and storage type
+									removeStorageItem(perm,keys);
+									
+									break;
+								case 'object':
+									removeStorageItem((keys.type === 'local'),keys.keys);
+									
+									break;
+								default:
+									throwError('Parameter passed is invalid.');
+									return undefined;
+									break;
+							}
+						};
+					// fallback to cookies
+					} else {
+						return function(perm,keys){
+							switch($.type(keys)){
+								case 'array':
+									// remove each item from correct internal object and storage type
+									for(var i = keys.len; i--;){
+										removeCookieItem(perm,keys[i]);
+									}
+									
+									break;
+								case 'string':
+									// remove item from correct internal object and storage type
+									removeCookieItem(perm,keys);
+									
+									break;
+								case 'object':
+									removeCookieItem((keys.type === 'local'),keys.keys);
+									
+									break;
+								default:
+									throwError('Parameter passed is invalid.');
+									return undefined;
+									break;
+							}
+						};
+					}
+				})();
+			
+			function prv_getStorage(type,keys){
+				if(type === 'local'){
+					switch($.type(keys)){
+						case 'array':
+							var permObj = {};
+							
+							for(var i = 0,len = keys.length; i < len; i++){
+								permObj[keys[i]] = permStorage[keys[i]];
+							}
+							
+							return permObj;
+							
+							break;
+						case 'string':
+							return permStorage[keys];
+							
+							break;
+						case 'undefined':
+							return permStorage;
+							
+							break;
+						default:
+							throwError('Parameter passed is invalid.');
+							return undefined;
+							break;
+					}
+				} else if(type === 'session'){
+					switch($.type(keys)){
+						case 'array':
+							var tempObj = {};
+							
+							for(var i = 0,len = keys.length; i < len; i++){
+								tempObj[keys[i]] = tempStorage[keys[i]];
+							}
+							
+							return tempObj;
+							
+							break;
+						case 'string':
+							return tempStorage[keys];
+							
+							break;
+						case 'undefined':							
+							return tempStorage;
+							
+							break;
+						default:
+							throwError('Parameter passed is invalid.');
+							return undefined;
+							break;
+					}
+				}
+			}
+			
+			function prv_localStorage(arguments){
+				switch(arguments.length){
+					case 0:
+						return prv_getStorage('local');
+						
+						break;
+					case 1:
+						if($.type(arguments[0]) === 'object'){
+							setStorage(true,arguments[0]);
+						} else {
+							return prv_getStorage('local',arguments[0]);
+						}
+						
+						break;
+					case 2:
+						setStorage(true,arguments[0],arguments[1]);
+						
+						break;
+					default:
+						throwError('Parameter passed is not a valid type.');
+						
+						break;
+				}
+			}
+			
+			function prv_sessionStorage(arguments){
+				switch(arguments.length){
+					case 0:
+						return prv_getStorage('session');
+						
+						break;
+					case 1:
+						if($.type(arguments[0]) === 'object'){
+							setStorage(false,arguments[0]);
+						} else {
+							return prv_getStorage('session',arguments[0]);
+						}
+						
+						break;
+					case 2:
+						setStorage(false,arguments[0],arguments[1]);
+						
+						break;
+					default:
+						throwError('Parameter passed is not a valid type.');
+						
+						break;
+				}
+			}
+			
+			function prv_removeStorage(arguments){
+				switch(arguments.length){
+					case 0:
+						window.localStorage.clear();
+						window.sessionStorage.clear();
+						
+						permStorage = tempStorage = {};
+						
+						break;
+					case 1:
+						switch($.type(arguments[0])){
+							case 'string':
+							case 'array':
+								removeStorage(true,arguments[0]);
+								removeStorage(false,arguments[0]);
+								
+								break;
+							case 'object':
+								if($.type(arguments[0].type) === 'undefined'){
+										removeStorage(true,arguments[0].keys);
+										removeStorage(false,arguments[0].keys);
+								} else {
+									switch(arguments[0].type){
+										case 'local':
+											removeStorage(true,arguments[0].keys);
+											break;
+										case 'session':
+											removeStorage(false,arguments[0].keys);
+											break;
+										default:
+											throwError('Invalid value for storage type.');
+											break;
+									}
+								}
+						}
+						
+						break;
+					case 2:
+						switch(arguments[1]){
+							case 'local':
+								removeStorage(true,arguments[0]);
+								
+								break;
+							case 'session':
+								removeStorage(false,arguments[0]);
+								
+								break;
+							default:
+								removeStorage(true,arguments[0]);
+								removeStorage(false,arguments[0]);
+								
+								break;
+						}
+						
+						break;
+				}
+			}
+			
+			return {
+				local:prv_localStorage,
+				remove:prv_removeStorage,
+				session:prv_sessionStorage
+			};
 		})(),
 		// build module for $.pledge() and $.postpone()
 		pledge = (function(){
@@ -1618,36 +2199,19 @@
 					
 					img.src = el.src;
 				}
-			},
-			/*
-			 * retrieve page without full pathing, which
-			 * is different depending on whether lastIndexOf
-			 * is supported by the browser
-			 */
-			getPage:(function(){
-				if(!Array.prototype.lastIndexOf){
-					return function(pg){
-						var url = pg.split('/');									
-						return url[url.length-1].split('?')[0];
-					};
-				} else {
-					return function(pg){
-						return pg.substring(pg.lastIndexOf('/')+1);
-					}
-				}
-			})()
+			}
 		};
 			
 	$.extend({
-		document:function(attribute){
+		document:function(attribute,values){
 			if(attribute){
-				return doc[attribute]();
+				return doc[attribute](values);
 			} else {
 				return doc.document();
 			}
 		},
-		page:function(page){
-			return helpFuncs.getPage(page || window.location.href);			
+		localStorage:function(){
+			return storage.local(arguments);
 		},
 		pledge:function(fn){
 			if($.type(fn) === 'function'){
@@ -1662,6 +2226,12 @@
 		publish:function(publishObj){
 			return pubsub.publish(publishObj);
 		},
+		removeStorage:function(){
+			return storage.remove(arguments);
+		},
+		sessionStorage:function(){
+			return storage.session(arguments);
+		},
 		subscribe:function(subscribeObj){
 			return pubsub.subscribe(subscribeObj);
 		},
@@ -1671,9 +2241,9 @@
 		unsubscribe:function(unsubscribeObj){
 			return pubsub.unsubscribe(unsubscribeObj);
 		},
-		window:function(attribute,element){
+		window:function(attribute,values){
 			if(attribute){
-				return win[attribute](element);
+				return win[attribute](values);
 			} else {
 				return win.window();
 			}
