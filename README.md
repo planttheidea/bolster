@@ -74,8 +74,8 @@ var dims = $.document('dimensions'),
     $document = $.document();
 
 if(dims.width > 100){
-  console.log($.document('width'));
-  // returns full height of document
+  console.log($.document('height'));
+  // returns full height of document (not the window)
 }
 ```
 
