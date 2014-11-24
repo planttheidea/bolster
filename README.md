@@ -44,6 +44,7 @@ Provide document-specific attributes, based on the parameter passed. To execute 
     + height
     + images
     + links
+    + page
     + referrer
     + styleSheets
     + styleSheetSets
@@ -444,7 +445,7 @@ $.subscribe({
 ```
 
 Built-in published topics:
-+ documentLoad *(published when document loads)*
++ documentReady *(published when DOM is ready)*
   + data provided is object with the following values:
     + everything retrievable through $.document('attributes')
 + documentResize *(published when document is resized)*
