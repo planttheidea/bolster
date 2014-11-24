@@ -1368,6 +1368,7 @@
 					height:h,
 					images:document.images,
 					links:document.links,
+					page:win.page(),
 					referrer:r,
 					styleSheets:styles,
 					styleSheetSets:styleSets,
@@ -1439,10 +1440,10 @@
 			$document
 				.off('.bolster.setDocumentAttributes')
 				.on({
-					'load.bolster.setDocumentAttributes':function(){
+					'ready.bolster.setDocumentAttributes':function(){
 						// publish all document attributes on load
 						pubsub.publish({
-							topic:'documentLoad',
+							topic:'documentReady',
 							data:prv_getAttributes()
 						});
 					},
