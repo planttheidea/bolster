@@ -958,7 +958,7 @@
 			}
 			
 			// performs subscription (abstrated for the same reason as above unsubscription)
-			function prv_subscribeTopic(topic,newToken,fn,once,name,newToken){
+			function prv_subscribeTopic(topic,fn,once,name,newToken){
 				if($.type(topics[topic]) !== 'array'){
 					topics[topic] = [];
 				}
@@ -998,12 +998,12 @@
 				// subscriptions called differently depending on typ
 				switch($.type(subscribeObj.topic)){
 					case 'string':
-						prv_subscribeTopic(subscribeObj.topic,subscribeObj.token,subscribeObj.fn,subscribeObj.once,subscribeObj.name,IDs[subscribeObj.name]);
+						prv_subscribeTopic(subscribeObj.topic,subscribeObj.fn,subscribeObj.once,subscribeObj.name,IDs[subscribeObj.name]);
 
 						break;
 					case 'array':					
 						for(var i = subscribeObj.topic.length; i--;){
-							prv_subscribeTopic(subscribeObj.topic[i],subscribeObj.token,subscribeObj.fn,subscribeObj.once,subscribeObj.name,IDs[subscribeObj.name]);
+							prv_subscribeTopic(subscribeObj.topic[i],subscribeObj.fn,subscribeObj.once,subscribeObj.name,IDs[subscribeObj.name]);
 						};
 						
 						break;
