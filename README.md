@@ -26,6 +26,8 @@ jQuery is a wonderful, magical, omnipresent library that makes the lives of most
 + $(selector) methods
   + Setting / removing / detecting "active" elements
   + Completion of image loading
+  + Getting the bounding client rectangle for the element
+  + Filtering objects by data key / value matches
   + Getting natural width / height of image
   + Setting attributes to not be selectable
   + Removing inline styling
