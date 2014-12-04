@@ -9,9 +9,9 @@ jQuery is a wonderful, magical, omnipresent library that makes the lives of most
 
 ### Size
 
-+ Uncompressed: 58.11KB
-+ Minified: 20.83KB
-+ Minified and gzipped: 6.38KB
++ Uncompressed: 59.4KB
++ Minified: 21.45KB
++ Minified and gzipped: 6.58KB
 
 ### Components
 
@@ -574,7 +574,7 @@ var simpleActive = $('.SimpleActive').active(), // checks if has "active" class
 
 **$(selector).boundingBox()**
 
-Return the bounding client rectange (top, left, right, bottom, height, and width relative to viewport) of the first element in the jQuery object. To execute the method, you simply call the method (no parameters accepted).
+Return the bounding client rectangle (top, left, right, bottom, height, and width relative to viewport) of the first element in the jQuery object. To execute the method, you simply call the method (no parameters accepted).
 
 Example:
 ```html
