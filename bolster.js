@@ -169,7 +169,9 @@
 				attachEvent = (function(){					
 					return (testElement.div.attachEvent);
 				})(),
-				// HTML5 audio element, each possible format
+				// HTML5 audio element
+				audio = !!(testElement.audio.canPlayType),
+				// and each specific adio format
 				audioMP3 = !!(testElement.audio.canPlayType && testElement.audio.canPlayType('audio/mpeg;').replace(/no/,'')),
 				audioMP4 = !!(testElement.audio.canPlayType && testElement.audio.canPlayType('audio/mp4;').replace(/no/,'')),
 				audioOGG = !!(testElement.audio.canPlayType && testElement.audio.canPlayType('audio/ogg;').replace(/no/,'')),
@@ -402,6 +404,10 @@
 						return false;
 					}
 				})(),
+				// CSS3 opacity property
+				opacity = (function(){
+					return newCss3Property(['opacity']);
+				})(),
 				// HTML5 pageXOffset and pageYOffset APIs
 				pageOffset = (($.type(window.pageXOffset) !== 'undefined') && ($.type(window.pageYOffset) !== 'undefined')),
 				// HTML5 postMessage API
@@ -483,7 +489,7 @@
 					}
 				})(),
 				// HTML5 SMIL API
-				smil = !!(document.createElementNS('http://www.w3.org/2000/svg','animateMotion').toString().indexOf('SVG') > -1),
+				smil = !!(document.createElementNS && (document.createElementNS('http://www.w3.org/2000/svg','animateMotion').toString().indexOf('SVG') > -1)),
 				// HTML5 svg element
 				svg = !!(document.createElementNS && document.createElementNS('http://www.w3.org/2000/svg','svg').createSVGRect),
 				// CSS3 text-shadow property
@@ -521,7 +527,9 @@
 				transition = (function(){
 					return newCss3Property(['transition','WebkitTransition','MozTransition','OTransition']);
 				})(),
-				// HTML5 video element, each possible format
+				// HTML5 video element
+				video = !!(testElement.video.canPlayType),
+				// and each specific video format
 				videoMP4 = !!(testElement.video.canPlayType && testElement.video.canPlayType('video/mp4;').replace(/no/,'')),
 				videoOGG = !!(testElement.video.canPlayType && testElement.video.canPlayType('video/ogg;').replace(/no/,'')),
 				videoWebM = !!(testElement.video.canPlayType && testElement.video.canPlayType('video/webm;').replace(/no/,'')),
@@ -570,11 +578,7 @@
 			}
 			
 			function prv_getAudio(){
-				return {
-					mp3:audioMP3,
-					mp4:audioMP4,
-					ogg:audioOGG
-				};
+				return audio;
 			}
 			
 			function prv_getAudioMP3(){
@@ -713,6 +717,10 @@
 				return mediaQueries;
 			}
 			
+			function prv_getOpacity(){
+				return opacity;
+			}
+			
 			function prv_getPageOffset(){
 				return pageOffset;
 			}
@@ -797,11 +805,7 @@
 			}
 			
 			function prv_getVideo(){
-				return {
-					mp4:videoMP4,
-					ogg:videoOGG,
-					webM:videoWebM
-				};
+				return video;
 			}
 			
 			function prv_getVideoMP4(){
@@ -856,6 +860,7 @@
 				linearGradient:prv_getLinearGradient,
 				localStorage:prv_getLocalStorage,
 				mediaQueries:prv_getMediaQueries,
+				opacity:prv_getOpacity,
 				pageOffset:prv_getPageOffset,
 				postMessage:prv_getPostMessage,
 				pseudoClass:prv_getPseudoClass,
@@ -919,7 +924,7 @@
 				if(IDs[name] > 0){
 					for(var m in topics){
 						if(topics[m]){
-							for (var i = topics[m].length; i--;) {			
+							for (var i = topics[m].length; i--;) {
 								if(topics[m][i].token === IDs[name]){
 									delete IDs[name];
 									
@@ -953,7 +958,7 @@
 			}
 			
 			// performs subscription (abstrated for the same reason as above unsubscription)
-			function prv_subscribeTopic(topic,newToken,fn,once,name){
+			function prv_subscribeTopic(topic,newToken,fn,once,name,newToken){
 				if($.type(topics[topic]) !== 'array'){
 					topics[topic] = [];
 				}
@@ -987,15 +992,18 @@
 					prv_unsubscribeName(subscribeObj.name);
 				}
 				
+				// assigns new ID
+				IDs[subscribeObj.name] = (++subUid);
+				
 				// subscriptions called differently depending on typ
 				switch($.type(subscribeObj.topic)){
 					case 'string':
-						prv_subscribeTopic(subscribeObj.topic,subscribeObj.token,subscribeObj.fn,subscribeObj.once,subscribeObj.name);
+						prv_subscribeTopic(subscribeObj.topic,subscribeObj.token,subscribeObj.fn,subscribeObj.once,subscribeObj.name,IDs[subscribeObj.name]);
 
 						break;
 					case 'array':					
 						for(var i = subscribeObj.topic.length; i--;){
-							prv_subscribeTopic(subscribeObj.topic[i],subscribeObj.token,subscribeObj.fn,subscribeObj.once,subscribeObj.name);
+							prv_subscribeTopic(subscribeObj.topic[i],subscribeObj.token,subscribeObj.fn,subscribeObj.once,subscribeObj.name,IDs[subscribeObj.name]);
 						};
 						
 						break;
@@ -1008,9 +1016,6 @@
 										
 						break;
 				}
-				
-				// assigns new ID
-				IDs[subscribeObj.name] = (++subUid);
 				
 				return this;
 			}
@@ -1207,8 +1212,8 @@
 				return hr;
 			}
 			
-			function prv_getPage(){
-				return p;
+			function prv_getPage(pg){
+				return (pg ? getPage(pg) : p);
 			}
 			
 			function prv_getQueryString(){
@@ -2084,6 +2089,19 @@
 					});
 				}
 			};
+			
+			$.extend({
+				pledge:function(fn){
+					if($.type(fn) === 'function'){
+						return (new Pledge()).start(fn);
+					} else {
+						throwError('Must pass function into $.pledge.');
+					}
+				},
+				postpone:function(){
+					return new postpone();
+				}
+			});
 		})(),
 		// functions to help internally
 		helpFuncs = {
@@ -2168,16 +2186,6 @@
 		localStorage:function(){
 			return storage.local(arguments);
 		},
-		pledge:function(fn){
-			if($.type(fn) === 'function'){
-				return (new Pledge()).start(fn);
-			} else {
-				throwError('Must pass function into $.pledge.');
-			}
-		},
-		postpone:function(){
-			return new Postpone();
-		},
 		publish:function(publishObj){
 			return pubsub.publish(publishObj);
 		},
@@ -2226,6 +2234,14 @@
 					.deactivate(cls)
 					.addClass(cls);
 			}
+		},
+		// filter objects by their data attributes
+		dataFilter:function(key,value){
+			var $self = this;
+			
+			return $self.filter(function(i){
+				return ($self[i].data(key) === value);
+			});
 		},
 		// set object elements to "inactive" based on class and parent passed or default
 		deactivate:function(cls,parent){
