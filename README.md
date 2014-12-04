@@ -572,6 +572,18 @@ var simpleActive = $('.SimpleActive').active(), // checks if has "active" class
     specificActive = $('li').active('SpecificActive'); // checks if has "SpecificActive" class
 ```
 
+**$(selector).dataFilter()**
+
+Filter current jQuery object by each element's data attribute matching a given value, returning a jQuery object only with elements where the attribute matches. To execute the method, you can pass in the following parameters:
++ data attribute key
++ value that the key should have
+
+Example:
+```html
+var $item = $('.SomeClass'), // contains 10 elements, 7 of which have data with key "foo" that is equal to "bar"
+    $fooBar = $item.dataFilter('foo','bar'); // contains 7 elements
+```
+
 **$(selector).deactivate()**
 
 Set object to be "inactive", denoted by a class removed from each element in the object. To execute the method, you can pass in the following parameters:
