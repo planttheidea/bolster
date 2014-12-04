@@ -219,6 +219,10 @@
 				})(),
 				// HTML5 geolocation API
 				geolocation = !!('geolocation' in navigator),
+				// getBoundingClientRect API
+				getBoundingClientRect = (function(){
+					return (document.documentElement || document.body).getBoundingClientRect;
+				})(),
 				// getElementsByClassName API
 				getElementsByClassName = !!(document.getElementsByClassName),
 				// HTML5 hashchange event
@@ -641,6 +645,10 @@
 				return geolocation;
 			}
 			
+			function prv_getGetBoundingClientRect(){
+				return getBoundingClientRect;
+			}
+			
 			function prv_getGetElementsByClassName(){
 				return getElementsByClassName;
 			}
@@ -848,6 +856,7 @@
 				eventListener:prv_getEventListener,
 				flexbox:prv_getFlexbox,
 				geolocation:prv_getGeolocation,
+				getBoundingClientRect:prv_getGetBoundingClientRect,
 				getElementsByClassName:prv_getGetElementsByClassName,
 				gradient:prv_getGradient,
 				hashchange:prv_getHashchange,
@@ -958,7 +967,7 @@
 			}
 			
 			// performs subscription (abstrated for the same reason as above unsubscription)
-			function prv_subscribeTopic(topic,fn,once,name,newToken){
+			function prv_subscribeTopic(topic,newToken,fn,once,name,newToken){
 				if($.type(topics[topic]) !== 'array'){
 					topics[topic] = [];
 				}
@@ -998,12 +1007,12 @@
 				// subscriptions called differently depending on typ
 				switch($.type(subscribeObj.topic)){
 					case 'string':
-						prv_subscribeTopic(subscribeObj.topic,subscribeObj.fn,subscribeObj.once,subscribeObj.name,IDs[subscribeObj.name]);
+						prv_subscribeTopic(subscribeObj.topic,subscribeObj.token,subscribeObj.fn,subscribeObj.once,subscribeObj.name,IDs[subscribeObj.name]);
 
 						break;
 					case 'array':					
 						for(var i = subscribeObj.topic.length; i--;){
-							prv_subscribeTopic(subscribeObj.topic[i],subscribeObj.fn,subscribeObj.once,subscribeObj.name,IDs[subscribeObj.name]);
+							prv_subscribeTopic(subscribeObj.topic[i],subscribeObj.token,subscribeObj.fn,subscribeObj.once,subscribeObj.name,IDs[subscribeObj.name]);
 						};
 						
 						break;
@@ -2105,6 +2114,41 @@
 		})(),
 		// functions to help internally
 		helpFuncs = {
+			// return complete bounding rect of element
+			clientRect:(function(){
+				if(supports.getBoundingClientRect()){
+					return function($self){
+						var rect = $self[0].getBoundingClientRect();
+						
+						return {
+							bottom:Math.round(rect.bottom),
+							height:Math.round(rect.height || (rect.bottom - rect.top)),
+							left:Math.round(rect.left),
+							right:Math.round(rect.right),
+							top:Math.round(rect.top),
+							width:Math.round(rect.width || (rect.right - rect.left))					
+						};
+					};
+				} else {
+					return function($self){
+						var $first = $self.eq(0),
+							first = $first[0],
+							h = Math.max(first.scrollHeight,first.offsetHeight,first.clientHeight),
+							w = Math.max(first.scrollWidth,first.offsetWidth,first.clientWidth),
+							offset = $first.offset(),
+							body = document.body;
+					
+						return {
+							bottom:((offset.top - body.scrollTop) + h),
+							height:h,
+							left:(offset.left - body.scrollLeft),
+							right:((offset.left - body.scrollLeft) + w),
+							top:(offset.top - body.scrollTop),
+							width:w
+						};
+					};
+				}
+			})(),
 			// perform preload of images
 			loadImg:function(self,i,len,callback){
 				if($.type(callback) === 'function'){
@@ -2235,13 +2279,9 @@
 					.addClass(cls);
 			}
 		},
-		// filter objects by their data attributes
-		dataFilter:function(key,value){
-			var $self = this;
-			
-			return $self.filter(function(i){
-				return ($self[i].data(key) === value);
-			});
+		// get the clientRect of the first element in the object
+		boundingBox:function(){
+			return helpFuncs.clientRect(this);
 		},
 		// set object elements to "inactive" based on class and parent passed or default
 		deactivate:function(cls,parent){
@@ -2281,11 +2321,11 @@
 		},
 		// retrieve naturalHeight of first element in object
 		naturalHeight:function(){
-			return helpFuncs.naturalDimensions.height(this.get(0));
+			return helpFuncs.naturalDimensions.height(this[0]);
 		},
 		// retrieve naturalWidth of first element in object
 		naturalWidth:function(){
-			return helpFuncs.naturalDimensions.width(this.get(0));
+			return helpFuncs.naturalDimensions.width(this[0]);
 		},
 		/*
 		 * make all elements in object, and all children, unseletable
