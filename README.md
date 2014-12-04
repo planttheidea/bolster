@@ -572,6 +572,16 @@ var simpleActive = $('.SimpleActive').active(), // checks if has "active" class
     specificActive = $('li').active('SpecificActive'); // checks if has "SpecificActive" class
 ```
 
+**$(selector).boundingBox()**
+
+Return the bounding client rectange (top, left, right, bottom, height, and width relative to viewport) of the first element in the jQuery object. To execute the method, you simply call the method (no parameters accepted).
+
+Example:
+```html
+var relativeTop = $('.WindowHasBeenScrolled').boundingBox().top;
+// assuming you have scrolled down 100 pixels and the box is located200 pixels below the top of the document, returns 100
+```
+
 **$(selector).dataFilter()**
 
 Filter current jQuery object by each element's data attribute matching a given value, returning a jQuery object only with elements where the attribute matches. To execute the method, you can pass in the following parameters:
