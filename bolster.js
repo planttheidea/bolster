@@ -2315,7 +2315,28 @@
 		// get the clientRect of the first element in the object
 		boundingBox:function(attr){
 			if(attr){
-				return helpFuncs.clientRect(this)[attr];
+				var ret;
+				
+				switch($.type(attr)){
+					case 'string':
+						ret = helpFuncs.clientRect(this)[attr];
+						
+						break;
+					case 'array':
+						ret = {}
+						
+						for(var i = 0, len = attr.length; i < len; i++){
+							ret[attr[i]] = helpFuncs.clientRect(this)[attr[i]];
+						}
+						
+						break;
+					default:
+						ret = undefined;
+						
+						break;
+				}
+				
+				return ret;
 			} else {
 				return helpFuncs.clientRect(this);
 			}
