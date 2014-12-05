@@ -21,7 +21,6 @@ jQuery is a wonderful, magical, omnipresent library that makes the lives of most
   + Window attributes
   + Document attributes
   + Promises / deferreds
-  + Retrieve page name
   + localStorage / sessionStorage with cookie fallback
 + $(selector) methods
   + Setting / removing / detecting "active" elements
