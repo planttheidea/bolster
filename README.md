@@ -9,9 +9,9 @@ jQuery is a wonderful, magical, omnipresent library that makes the lives of most
 
 ### Size
 
-+ Uncompressed: 60.22KB
-+ Minified: 21.73KB
-+ Minified and gzipped: 6.63KB
++ Uncompressed: 60.54KB
++ Minified: 21.89KB
++ Minified and gzipped: 6.66KB
 
 ### Components
 
@@ -579,7 +579,10 @@ var simpleActive = $('.SimpleActive').active(), // checks if has "active" class
 
 **$(selector).boundingBox()**
 
-Return the bounding client rectangle (top, left, right, bottom, height, and width relative to viewport) of the first element in the jQuery object. To execute the method, you simply call the method (no parameters accepted).
+Return the bounding client rectangle (top, left, right, bottom, height, and width relative to viewport) of the first element in the jQuery object. To execute the method, you can pass in the following parameters:
++ specific attribute to return *(string / array, optional)*
+
+If no parameter is passed, an object with all attributes is returned.
 
 Example:
 ```html
