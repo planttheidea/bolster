@@ -9,9 +9,9 @@ jQuery is a wonderful, magical, omnipresent library that makes the lives of most
 
 ### Size
 
-+ Uncompressed: 59.4KB
-+ Minified: 21.45KB
-+ Minified and gzipped: 6.58KB
++ Uncompressed: 60.22KB
++ Minified: 21.73KB
++ Minified and gzipped: 6.63KB
 
 ### Components
 
@@ -320,6 +320,7 @@ Check if browser supports a specific feature, and there are many features that a
 + eventListener *(modern event-to-function assignment)*
 + flexbox *(CSS3 new display type of flex)*
 + geolocation *(HTML5 Geolocation API)*
++ getBoundingClientRect *(Bounding box relative to scroll location in viewport)*
 + getElementsByClassName *(getElementsByClassName method)*
 + gradient *(CSS3 gradient background type)*
   + returns object with boolean values for:
@@ -423,8 +424,8 @@ Subscribe to a topic, so that a specific function you pass in will be executed u
   + If subscribing to multiple topics, provide them as strings in an array
 + name *(string, required)*
   + Unique name of subscription
-+ once *(boolean, optional)*
-  + Perform the subscription funcion only once (default is false)
++ persistent *(boolean, optional)*
+  + Subscription will persist across attempts to unsubscribe it (or all subscriptions at once)
 + fn *(function, required)*
   + Function that will be executed upon each publishing of given topic
 
@@ -479,8 +480,10 @@ Built-in published topics:
 **$.unsubscribe()**
 
 Remove subscription(s) to a topic based on subscription name passed in. To execute the method, a single object is passed in with the following components:
-+ name *(string / array, required)*
++ name *(string / array, optional)*
   + Unique name of subscription
+
+If no parameter is passed, then all subscriptions not set as "persistent" will be unsubscribed from.
 
 Example:
 ```html
