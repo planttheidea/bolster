@@ -592,13 +592,21 @@ var relativeTop = $('.WindowHasBeenScrolled').boundingBox().top;
 **$(selector).dataFilter()**
 
 Filter current jQuery object by each element's data attribute matching a given value, returning a jQuery object only with elements where the attribute matches. To execute the method, you can pass in the following parameters:
-+ data attribute key
-+ value that the key should have
++ data attribute key *(string / object, required)*
++ value that the key should have *(string, optional)*
 
 Example:
 ```html
-var $item = $('.SomeClass'), // contains 10 elements, 7 of which have data with key "foo" that is equal to "bar"
-    $fooBar = $item.dataFilter('foo','bar'); // contains 7 elements
+// using strings, get items with data-foo with value of "bar"
+var $item = $('.SomeClass'),
+    $fooBar = $item.dataFilter('foo','bar');
+    
+// using object, get items with data-foo with value of "bar" and data-bynd with value of "rsn"
+var $item = $('.SomeClass'),
+    $fooBar = $item.dataFilter({
+      foo:'bar',
+      bynd:'rsn'
+    });
 ```
 
 **$(selector).deactivate()**
