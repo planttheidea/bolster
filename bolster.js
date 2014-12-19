@@ -12,7 +12,7 @@
  * limitations under the License.
  *
 */
-(function(window,document,$){
+(function($,window,document,undefined){
 	// universal error-throwing function
 	var throwError = function(e){
 			throw new Error(e);
@@ -2407,4 +2407,4 @@
 			
 		}
 	});
-})(window,document,jQuery);
+})(window.jQuery,window,document);
