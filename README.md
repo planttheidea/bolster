@@ -9,9 +9,9 @@ jQuery is a wonderful, magical, omnipresent library that makes the lives of most
 
 ### Size
 
-+ Uncompressed: 61KB
-+ Minified: 22.1KB
-+ Minified and gzipped: 6.75KB
++ Uncompressed: 61.22KB
++ Minified: 22.95KB
++ Minified and gzipped: 7.09KB
 
 ### Components
 
@@ -79,34 +79,6 @@ if(dims.width > 100){
   console.log($.document('height'));
   // returns full height of document (not the window)
 }
-```
-
-**$.localStorage()**
-Assigns or retrieves existing storage items that are considered "permanent" (meaning they persist upon closure of the session), depending on the parameters that are passed in. To execute assignment, pass in any one of the following parameters:
-+ key,value *(2 string parameters that are comma-separated, optional)*
-+ object containing 1 to many key:value pairs *(1 object parameter only, optional)*
-
-If no parameter is passed, all localStorage items will be retrieved and returned as an object of key:value pairs.
-
-Examples:
-```html
-$.localStorage('foo','bar');
-$.localStorage({
-  foo:'bar',
-  beyond:'reason'
-});
-```
-
-To execute retrieval, pass in any one of the following parameters:
-+ key *(1 string parameter)*
-  + returns value of key
-+ array of keys *(1 array parameter)*
-  + returns object of key:value pairs
-
-Examples:
-```html
-$.localStorage('foo'); // returns bar
-$.localStorage(['foo','beyond']); // returns {foo:'bar',beyond:'reason'}
 ```
 
 **$.pledge()**
@@ -255,34 +227,85 @@ $('div').on('click',function(){
 });
 ```
 
-**$.removeStorage()**
-Removes existing items stored with $.localStorage() and $.sessionStorage(), depending on the parameters passed in. To execute the method, pass in the following parameters:
-+ key(s) *(string / array / object, optional)*
-  + if string, will remove single key
-  + if array, will remove each key in array
-  + if object, will remove each key in value of "keys"
-    + can also pass in type as value of "type"
-+ type *(string, optional)*
-  + if passed in, will limit removal to a specific type (local vs session)
+**$.storage()**
+Gets, sets, or removes storage items. Defaults to using localStorage and sessionStorage, however when those are not supported then it falls back to cookies. To execute assignment, you can use it any one of the following ways:
 
-If no parameter is passed, all localStorage and sessionStorage items will be removed.
+*String*
++ get
+  + 'get',key,type *('get' and key are required, type is optional)*
+  + type will default to searching in all storage types
++ set
+  + 'set',key,value,type *('set', key, and value are required, type is optional)*
+  + type will default to session
++ remove
+  + 'remove',key,type *('remove' and key are required, type is optional)*
+  + type will default to removing from both storage types
 
-Examples:
+Example:
 ```html
-$.removeStorage('foo'); // removes key of "foo" from both localStorage and sessionStorage
-$.removeStorage(['foo','beyond'],'local'); // removes keys "foo" and "beyond" from localStorage only
-$.removeStorage({
-  keys:'beyond',
-  type:'session'
-}); // removes key "beyond" from sessionStorage only
+var val = $.storage('get','someKey','session');
+
+$.storage('set','someKey','newVal','local'); // can use the same key in different storage types
+
+$.storage('remove','someKey'); // will remove both keys
 ```
 
-**$.sessionStorage()**
-Assigns or retrieves existing storage items that are considered "temporary" (meaning they expire upon closure of the session), depending on the parameters that are passed in. To execute assignment, pass in any one of the following parameters:
-+ key,value *(2 string parameters that are comma-separated, optional)*
-+ object containing 1 to many key:value pairs *(1 object parameter only, optional)*
+*Array*
++ get
+  + 'get',keyArray,type *('get' and keyArray are required, type is optional)*
+  + type will default to searching in all storage types
+  + returns object of key:value pairs
++ remove
+  + 'remove',keyArray,type *('remove' and keyArray are required, type is optional)*
+  + type will default to removing from both storage types
 
-If no parameter is passed, all sessionStorage items will be retrieved and returned as an object of key:value pairs.
+Example:
+```html
+var val = $.storage('get',['someKey','anotherKey']);
+
+$.storage('remove',['someKey','anotherKey']);
+```
+
+*Object*
++ get, set, 
+  + object, type *(object is required, type is optional or can be included in object)*
+
+Example:
+```html
+var val = $.storage({
+  action:'get',
+  data:'someKey',
+  type:'local'
+});
+
+$.storage({
+  action:'set',
+  data:{
+    someKey:'newVal',
+    anotherKey:'anotherVal'
+  }
+},'session');
+
+$.storage({
+  action:'remove',
+  data:['someKey','anotherKey']
+});
+```
+
+If no parameter is passed, the storage object itself is returned, and you can access the same methods in a more traditional way. Example:
+```html
+var storage = $.storage(),
+    val = storage.get('someKey');
+    
+storage.set({
+  data:{
+    someKey:'newVal',
+    anotherKey:'anotherVal'
+  }
+},'session');
+
+storage.remove(['someKey','anotherKey'],'session');
+```
 
 Examples:
 ```html
