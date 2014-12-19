@@ -219,6 +219,10 @@
 				})(),
 				// HTML5 geolocation API
 				geolocation = !!('geolocation' in navigator),
+				// getBoundingClientRect API
+				getBoundingClientRect = (function(){
+					return (document.documentElement || document.body).getBoundingClientRect;
+				})(),
 				// getElementsByClassName API
 				getElementsByClassName = !!(document.getElementsByClassName),
 				// HTML5 hashchange event
@@ -641,6 +645,10 @@
 				return geolocation;
 			}
 			
+			function prv_getGetBoundingClientRect(){
+				return getBoundingClientRect;
+			}
+			
 			function prv_getGetElementsByClassName(){
 				return getElementsByClassName;
 			}
@@ -848,6 +856,7 @@
 				eventListener:prv_getEventListener,
 				flexbox:prv_getFlexbox,
 				geolocation:prv_getGeolocation,
+				getBoundingClientRect:prv_getGetBoundingClientRect,
 				getElementsByClassName:prv_getGetElementsByClassName,
 				gradient:prv_getGradient,
 				hashchange:prv_getHashchange,
@@ -889,6 +898,8 @@
 		pubsub = (function(){
 			var topics = {},
 				IDs = {},
+				keywords = 
+				persistentIDs = {},
 				subUid = -1;
 			
 			// function to retrieve internal ID assigned to subscription
@@ -925,7 +936,7 @@
 					for(var m in topics){
 						if(topics[m]){
 							for (var i = topics[m].length; i--;) {
-								if(topics[m][i].token === IDs[name]){
+								if((topics[m][i].token === IDs[name]) && !topics[m][i].persistent){
 									delete IDs[name];
 									
 									topics[m].splice(i,1);
@@ -938,6 +949,8 @@
 			
 			// API access, calls prv_unsubscribeName differently depending on type
 			function prv_unsubscribe(unsubscribeObj){
+				unsubscribeObj = unsubscribeObj || {};
+				
 				switch($.type(unsubscribeObj.name)){
 					case 'string':
 						prv_unsubscribeName(unsubscribeObj.name);
@@ -946,6 +959,14 @@
 					case 'array':
 						for(var i = unsubscribeObj.name.length; i--;){
 							prv_unsubscribeName(unsubscribeObj.name[i]);
+						}
+						
+						break;
+					case 'undefined':
+						for(var key in IDs){
+							if(!persistentIDs[key]){
+								prv_unsubscribeName(key);
+							}
 						}
 						
 						break;
@@ -995,6 +1016,10 @@
 				// assigns new ID
 				IDs[subscribeObj.name] = (++subUid);
 				
+				if(subscribeObj.persistent){
+					persistentIDs[subscribeObj.name] = subUid;
+				}
+				
 				// subscriptions called differently depending on typ
 				switch($.type(subscribeObj.topic)){
 					case 'string':
@@ -1022,7 +1047,6 @@
 			
 			// API to perform actions
 			return {
-				getID:prv_getID,
 				publish:prv_publish,
 				subscribe:prv_subscribe,
 				unsubscribe:prv_unsubscribe
@@ -1142,12 +1166,23 @@
 						}
 					}
 				})(),
-				hr = window.location.href,
+				// function to get and set hr
+				getHref = function(){
+					return window.location.href;
+				},
+				hr = getHref(),
 				p = getPage(hr),
-				ha = window.location.hash.replace('#',''),
+				getHash = function(){
+					return window.location.hash.replace('#','');
+				},
+				ha = getHash,
 				hn = (window.location.hostname || window.location.host),
-				setQs = function(){
-					var qsArray = window.location.search.substr(1).split('&'),
+				getStringQs = function(){
+					return window.location.search.substr(1);
+				},
+				stringQs = getStringQs(),
+				getObjectQs = function(){
+					var qsArray = stringQs.split('&'),
 						qsObj = {};
 					
 					for(var i = 0, len = qsArray.length; i < len; i++){
@@ -1159,7 +1194,8 @@
 					
 					return qsObj;
 				},
-				qs = setQs();
+				objectQs = getObjectQs(),
+				resize;
 			
 			// functions to access above values / functions through API
 			function prv_fullscreenEnter(el){
@@ -1179,7 +1215,7 @@
 					hostname:hn,
 					href:hr,
 					page:p,
-					querystring:qs,
+					querystring:objectQs,
 					scrollTop:t,
 					width:w
 				};
@@ -1216,8 +1252,12 @@
 				return (pg ? getPage(pg) : p);
 			}
 			
-			function prv_getQueryString(){
-				return qs;
+			function prv_getQueryString(string){
+				if(string){
+					return stringQs;
+				} else {
+					return objectQs;
+				}
 			}
 			
 			function prv_getScrollTop(){
@@ -1265,11 +1305,11 @@
 			}
 			
 			function prv_setHash(){
-				ha = window.location.hash.replace('#','');
+				ha = getHash();
 			}
 			
 			function prv_setHref(){
-				hr = window.location.href;
+				hr = getHref();
 			}
 			
 			function prv_setPage(){
@@ -1277,7 +1317,8 @@
 			}
 			
 			function prv_setQueryString(){
-				setQs();
+				stringQs = getStringQs();
+				objectQs = getObjectQs();
 			}
 			
 			function prv_setScrollTop(){
@@ -1888,9 +1929,28 @@
 				storage:function(){
 					var args = Array.prototype.slice.call(arguments),
 						fn = args.shift();
-					
-					if(fn){
-						instance[fn](args);
+						
+					if(fn){						
+						switch($.type(fn)){
+							case 'object':
+								if($.type(fn.action) !== 'undefined'){
+									instance[fn.action](fn);
+								} else {
+									instance['get'](fn);
+								}
+								
+								break;
+							case 'string':
+								instance[fn](args);
+								
+								break;
+							case 'array':
+								instance['get'](args);
+								
+								break;
+							default:								
+								break;
+						}
 					} else {
 						return instance;
 					}
@@ -2164,6 +2224,41 @@
 		})(),
 		// functions to help internally
 		helpFuncs = {
+			// return complete bounding rect of element
+			clientRect:(function(){
+				if(supports.getBoundingClientRect()){
+					return function($self){
+						var rect = $self[0].getBoundingClientRect();
+						
+						return {
+							bottom:Math.round(rect.bottom),
+							height:Math.round(rect.height || (rect.bottom - rect.top)),
+							left:Math.round(rect.left),
+							right:Math.round(rect.right),
+							top:Math.round(rect.top),
+							width:Math.round(rect.width || (rect.right - rect.left))					
+						};
+					};
+				} else {
+					return function($self){
+						var $first = $self.eq(0),
+							first = $first[0],
+							h = Math.max(first.scrollHeight,first.offsetHeight,first.clientHeight),
+							w = Math.max(first.scrollWidth,first.offsetWidth,first.clientWidth),
+							offset = $first.offset(),
+							body = document.body;
+					
+						return {
+							bottom:Math.round((offset.top - body.scrollTop) + h),
+							height:Math.round(h),
+							left:Math.round(offset.left - body.scrollLeft),
+							right:Math.round((offset.left - body.scrollLeft) + w),
+							top:Math.round(offset.top - body.scrollTop),
+							width:Math.round(w)
+						};
+					};
+				}
+			})(),
 			// perform preload of images
 			loadImg:function(self,i,len,callback){
 				if($.type(callback) === 'function'){
@@ -2292,6 +2387,35 @@
 				return this
 					.deactivate(cls)
 					.addClass(cls);
+			}
+		},
+		// get the clientRect of the first element in the object
+		boundingBox:function(attr){
+			if(attr){
+				var ret;
+				
+				switch($.type(attr)){
+					case 'string':
+						ret = helpFuncs.clientRect(this)[attr];
+						
+						break;
+					case 'array':
+						ret = {}
+						
+						for(var i = 0, len = attr.length; i < len; i++){
+							ret[attr[i]] = helpFuncs.clientRect(this)[attr[i]];
+						}
+						
+						break;
+					default:
+						ret = undefined;
+						
+						break;
+				}
+				
+				return ret;
+			} else {
+				return helpFuncs.clientRect(this);
 			}
 		},
 		// filter objects by their data attributes
