@@ -219,10 +219,6 @@
 				})(),
 				// HTML5 geolocation API
 				geolocation = !!('geolocation' in navigator),
-				// getBoundingClientRect API
-				getBoundingClientRect = (function(){
-					return (document.documentElement || document.body).getBoundingClientRect;
-				})(),
 				// getElementsByClassName API
 				getElementsByClassName = !!(document.getElementsByClassName),
 				// HTML5 hashchange event
@@ -645,10 +641,6 @@
 				return geolocation;
 			}
 			
-			function prv_getGetBoundingClientRect(){
-				return getBoundingClientRect;
-			}
-			
 			function prv_getGetElementsByClassName(){
 				return getElementsByClassName;
 			}
@@ -856,7 +848,6 @@
 				eventListener:prv_getEventListener,
 				flexbox:prv_getFlexbox,
 				geolocation:prv_getGeolocation,
-				getBoundingClientRect:prv_getGetBoundingClientRect,
 				getElementsByClassName:prv_getGetElementsByClassName,
 				gradient:prv_getGradient,
 				hashchange:prv_getHashchange,
@@ -898,8 +889,6 @@
 		pubsub = (function(){
 			var topics = {},
 				IDs = {},
-				keywords = 
-				persistentIDs = {},
 				subUid = -1;
 			
 			// function to retrieve internal ID assigned to subscription
@@ -936,7 +925,7 @@
 					for(var m in topics){
 						if(topics[m]){
 							for (var i = topics[m].length; i--;) {
-								if((topics[m][i].token === IDs[name]) && !topics[m][i].persistent){
+								if(topics[m][i].token === IDs[name]){
 									delete IDs[name];
 									
 									topics[m].splice(i,1);
@@ -949,8 +938,6 @@
 			
 			// API access, calls prv_unsubscribeName differently depending on type
 			function prv_unsubscribe(unsubscribeObj){
-				unsubscribeObj = unsubscribeObj || {};
-				
 				switch($.type(unsubscribeObj.name)){
 					case 'string':
 						prv_unsubscribeName(unsubscribeObj.name);
@@ -959,14 +946,6 @@
 					case 'array':
 						for(var i = unsubscribeObj.name.length; i--;){
 							prv_unsubscribeName(unsubscribeObj.name[i]);
-						}
-						
-						break;
-					case 'undefined':
-						for(var key in IDs){
-							if(!persistentIDs[key]){
-								prv_unsubscribeName(key);
-							}
 						}
 						
 						break;
@@ -1015,10 +994,6 @@
 				
 				// assigns new ID
 				IDs[subscribeObj.name] = (++subUid);
-				
-				if(subscribeObj.persistent){
-					persistentIDs[subscribeObj.name] = subUid;
-				}
 				
 				// subscriptions called differently depending on typ
 				switch($.type(subscribeObj.topic)){
@@ -1167,23 +1142,12 @@
 						}
 					}
 				})(),
-				// function to get and set hr
-				getHref = function(){
-					return window.location.href;
-				},
-				hr = getHref(),
+				hr = window.location.href,
 				p = getPage(hr),
-				getHash = function(){
-					return window.location.hash.replace('#','');
-				},
-				ha = getHash,
+				ha = window.location.hash.replace('#',''),
 				hn = (window.location.hostname || window.location.host),
-				getStringQs = function(){
-					return window.location.search.substr(1);
-				},
-				stringQs = getStringQs(),
-				getObjectQs = function(){
-					var qsArray = stringQs.split('&'),
+				setQs = function(){
+					var qsArray = window.location.search.substr(1).split('&'),
 						qsObj = {};
 					
 					for(var i = 0, len = qsArray.length; i < len; i++){
@@ -1195,8 +1159,7 @@
 					
 					return qsObj;
 				},
-				objectQs = getObjectQs(),
-				resize;
+				qs = setQs();
 			
 			// functions to access above values / functions through API
 			function prv_fullscreenEnter(el){
@@ -1216,7 +1179,7 @@
 					hostname:hn,
 					href:hr,
 					page:p,
-					querystring:objectQs,
+					querystring:qs,
 					scrollTop:t,
 					width:w
 				};
@@ -1253,12 +1216,8 @@
 				return (pg ? getPage(pg) : p);
 			}
 			
-			function prv_getQueryString(string){
-				if(string){
-					return stringQs;
-				} else {
-					return objectQs;
-				}
+			function prv_getQueryString(){
+				return qs;
 			}
 			
 			function prv_getScrollTop(){
@@ -1306,11 +1265,11 @@
 			}
 			
 			function prv_setHash(){
-				ha = getHash();
+				ha = window.location.hash.replace('#','');
 			}
 			
 			function prv_setHref(){
-				hr = getHref();
+				hr = window.location.href;
 			}
 			
 			function prv_setPage(){
@@ -1318,8 +1277,7 @@
 			}
 			
 			function prv_setQueryString(){
-				stringQs = getStringQs();
-				objectQs = getObjectQs();
+				setQs();
 			}
 			
 			function prv_setScrollTop(){
@@ -1516,369 +1474,428 @@
 		})(),
 		// build module for $.storage()
 		storage = (function(){
-			// initial tests for support
-			var ssSupport = supports.sessionStorage(),
-				lsSupport = supports.localStorage(),
-				jsonSupport = supports.json(),
-				// create empty objects
-				tempStorage = (function(){
-					var tempObj = {};
-					
-					for(var i = 0,len = window.sessionStorage.length; i < len; i++){
-						var key = window.localStorage.key(i);
-						
-						tempObj[key] = window.sessionStorage[key];
-					}
-					
-					return tempObj;
-				})(),
-				permStorage = (function(){
-					var tempObj = {};
-					
-					for(var i = 0,len = window.localStorage.length; i < len; i++){
-						var key = window.localStorage.key(i);
-						
-						tempObj[key] = window.localStorage[key];
-					}
-					
-					return tempObj;
-				})(),
-				// function to create expiry attribute if permanent
-				setCookieExpiration = function(perm){
-					return (perm ? '; expires=Fri, 31 Dec 9999 23:59:59 GMT' : '');
-				},
-				// function to build the full value
-				setCookieValue = function(cookie,perm){
-					var arr = cookie.replace('; ',';').split(';').sort(),
-						len = arr.length,
-						value = encodeURIComponent(arr[0]) + setCookieExpiration(perm);
-					
-					// create each attribute separately
-					if(len > 1){
-						for(var i = len; i--;){
-							var tempArr = arr[i].split('=');
+			var canUse = {
+					localStorage:(function(){
+						try {
+							window.localStorage.setItem('t','t');
+							window.localStorage.removeItem('t');
 							
-							switch(tempArr[0]){
-								case 'path':
-								case 'domain':
-									value += ('; '+ tempArr[0] + '=' + tempArr[1]);
-									break;
-								case 'secure':
-									value += '; secure';
-									break;
-								default:
-									break;
-							}
-						}
-					}
-					
-					// return completed string
-					return value;
-				},
-				/*
-				 * function to assign storage, which is a different function
-				 * depending on whether localStorage/sessionStorage is supported
-				 * or not, so we return a function in an IIFE that is specific
-				 * to support
-				 */
-				setStorage = (function(){
-					// support for HTML5 storage
-					if(ssSupport && lsSupport){
-						return function(perm,keys){
-							// go through each object key and assign it to localStorage and internal object
-							if($.type(keys) === 'object'){
-								for(var key in keys){
-									if(keys.hasOwnProperty(key)){
-										// assign to correct internal object and storage type
-										if(perm){
-											permStorage[key] = keys[key]
-											window.localStorage[key] = (($.type(keys[key]) === 'string') ? keys[key] : JSON.stringify(keys[key]));
-										} else {
-											tempStorage[key] = keys[key];
-											window.sessionStorage[key] = (($.type(keys[key]) === 'string') ? keys[key] : JSON.stringify(keys[key]));
-										}
-									}
-								}
-							} else {
-								throwError('Parameter passed must be an object.');
-							}
+							return true;
+						} catch(ex) {
+							return false;
 						};
-					// fallback to cookies
-					} else {
-						return function(perm,keys){								
-							// go through each object key and assign it to document.cookie and internal object			
-							if($.type(keys) === 'object'){
-								for(var key in keys){									
-									if(keys.hasOwnProperty(key)){
-										var value = setCookieValue(keys[key],perm);
+					})(),
+					sessionStorage:(function(){
+						try {
+							window.sessionStorage.setItem('t','t');
+							window.sessionStorage.removeItem('t');
+							
+							return true;
+						} catch(ex) {
+							return false;
+						};
+					})()
+				},
+				webStorage = {
+					local:(function(){
+						var ls = {};
+						
+						if(canUse.localStorage){
+							for(var item in window.localStorage){
+								if(item && (item !== null)){
+									var val = window.localStorage[item];
+									
+									try {
+										var testJSON = JSON.parse(val);
 										
-										// assign to correct internal object
-										if(perm){
-											permStorage[key] = value.split('; ')[0];
-										} else {
-											tempStorage[key] = value.split('; ')[0];
-										}
+										val = testJSON;
+									} catch(ex){}
 										
-										/*
-										 * cookies do not have different types, but different
-										 * expiration dates create session vs permanent
-										 */
-										document.cookie = encodeURIComponent(key) + '=' + JSON.stringify(value);
-									}
+									ls[item] = val;
 								}
-							} else {
-								throwError('Parameter passed must be an object.');
 							}
-						};
-					}
-				})(),
-				// function to remove storage item
-				removeStorageItem = function(perm,item){
-					if(perm && permStorage.hasOwnProperty(item)){
-						window.localStorage.removeItem(item);
-						delete permStorage[item];
-					} else if(tempStorage.hasOwnProperty(item)){
-						window.sessionStorage.removeItem(item);
-						delete tempStorage[item];
-					}
-				},
-				// function to remove cookie
-				removeCookieItem = function(perm,item){
-					if(perm && permStorage.hasOwnProperty(item)){
-						document.cookie = encodeURIComponent(item) + permStorage[item].split('; ').push('; expires=Thu, 01 Jan 1970 00:00:00 GMT').sort().join('; ');
-						delete permStorage[item];
-					} else if(tempStorage.hasOwnProperty(item)){
-						document.cookie = encodeURIComponent(item) + tempStorage[item].split('; ').push('; expires=Thu, 01 Jan 1970 00:00:00 GMT').sort().join('; ');
-						delete tempStorage[item];
-					}
-				},
-				/*
-				 * function to remove storage, which is different
-				 * depending on support, just as above
-				 */
-				removeStorage = (function(){
-					// HTML5 storage support
-					if(ssSupport && lsSupport){
-						return function(perm,keys){
-							switch($.type(keys)){
-								case 'array':
-									for(var i = keys.length; i--;){
-										// remove each item from correct internal object and storage type
-										removeStorageItem(perm,keys[i]);
-									}
+						} else {
+							if(document.cookie){
+								var keys = document.cookie.replace(/((?:^|\s*;)[^\=]+)(?=;|$)|^\s*|\s*(?:\=[^;]*)?(?:\1|$)/g,'').split(/\s*(?:\=[^;]*)?;\s*/);			
+								
+								for(var i = 0,len = keys.length; i < len; i++) {
+									var val;
 									
-									break;
-								case 'string':
-									// remove item from correct internal object and storage type
-									removeStorageItem(perm,keys);
+									keys[i] = decodeURIComponent(keys[i]);
 									
-									break;
-								case 'object':
-									removeStorageItem((keys.type === 'local'),keys.keys);
+									val = decodeURIComponent(document.cookie.replace(new RegExp('(?:(?:^|.*;)\\s*' + encodeURIComponent(keys[i]).replace(/[\-\.\+\*]/g,'\\$&') + '\\s*\\=\\s*([^;]*).*$)|^.*$'),'$1'));
+								
+									try {
+										var testJSON = JSON.parse(val);
+										
+										val = testJSON;
+									} catch(ex) {}
 									
-									break;
-								default:
-									throwError('Parameter passed is invalid.');
-									return undefined;
-									break;
+									ls[item] = val;
+								}
 							}
-						};
-					// fallback to cookies
+						}
+						
+						return ls;
+					})(),
+					session:(function(){
+						var ss = {};
+						
+						if(canUse.sessionStorage){
+							for(var item in window.localStorage){
+								switch($.type(item)){
+									case 'undefined':
+									case 'null':
+										break;
+									default:
+										var val = window.localStorage[item];
+										
+										try {
+											var testJSON = JSON.parse(val);
+											
+											val = testJSON;
+										} catch(ex){}
+											
+										ss[item] = val;
+										
+										break;
+								}
+							}
+						}
+						
+						return ss;
+					})()
+				},
+				setStorage = {
+					local:(function(){
+						if(canUse.localStorage){
+							return function(key,value){
+								if(key && key.length){
+									webStorage['local'][key] = value;
+									window.localStorage.setItem(key,value);
+								}
+							};
+						} else {
+							return function(key,value){
+								if (!key || /^(?:expires|max\-age|path|domain|secure)$/i.test(key)) {
+									return false;
+								}
+								
+								webStorage['local'][key] = value;
+								document.cookie = (encodeURIComponent(key) + "=" + encodeURIComponent(value) + '; expires=Fri, 31 Dec 9999 23:59:59 GMT');
+								
+								return true;
+							};
+						}
+					})(),
+					session:(function(){
+						if(canUse.sessionStorage){
+							return function(key,value){						
+								if(key && key.length){
+									webStorage['session'][key] = value;
+									window.sessionStorage.setItem(key,value);
+								}
+							};
+						} else {
+							return function(key,value){
+								if (!key || /^(?:expires|max\-age|path|domain|secure)$/i.test(key)) {
+									return false;
+								}
+								
+								webStorage['session'][name] = value;
+								document.cookie = (encodeURIComponent(key) + "=" + encodeURIComponent(value));
+								
+								return true;
+							};
+						}
+					})()
+				},
+				removeStorage = {
+					local:(function(){
+						if(canUse.localStorage){
+							return function(key){
+								if(webStorage['local'][key]){
+									delete webStorage['local'][key];
+									window.localStorage.removeItem(key);
+								}
+							};
+						} else {
+							return function(key){
+								if(webStorage['local'][key]){
+									delete webStorage['local'][key];
+									document.cookie = encodeURIComponent(key) + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+								}
+							};
+						}
+					})(),
+					session:(function(){
+						if(canUse.sessionStorage){
+							return function(key){
+								if(webStorage['session'][key]){
+									delete webStorage['session'][key];
+									window.sessionStorage.removeItem(key);
+								}
+							};
+						} else {
+							return function(key){
+								if(webStorage['session'][key]){
+									delete webStorage['session'][key];
+									document.cookie = encodeURIComponent(key) + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+								}
+							};
+						}
+					})()
+				},
+				instance;
+				
+			function prv_getStorage(name,type){
+				if(name){
+					if(type){
+						return webStorage[type][name];
 					} else {
-						return function(perm,keys){
-							switch($.type(keys)){
-								case 'array':
-									// remove each item from correct internal object and storage type
-									for(var i = keys.len; i--;){
-										removeCookieItem(perm,keys[i]);
-									}
-									
-									break;
-								case 'string':
-									// remove item from correct internal object and storage type
-									removeCookieItem(perm,keys);
-									
-									break;
-								case 'object':
-									removeCookieItem((keys.type === 'local'),keys.keys);
-									
-									break;
-								default:
-									throwError('Parameter passed is invalid.');
-									return undefined;
-									break;
+						var ls = webStorage.local[name],
+							ss = webStorage.session[name];
+						
+						if(ls){
+							if(ss){
+								return {
+									local:ls,
+									session:ss
+								};
+							} else {
+								return ls;
 							}
-						};
-					}
-				})();
-			
-			function prv_getStorage(type,keys){
-				if(type === 'local'){
-					switch($.type(keys)){
-						case 'array':
-							var permObj = {};
-							
-							for(var i = 0,len = keys.length; i < len; i++){
-								permObj[keys[i]] = permStorage[keys[i]];
-							}
-							
-							return permObj;
-							
-							break;
-						case 'string':
-							return permStorage[keys];
-							
-							break;
-						case 'undefined':
-							return permStorage;
-							
-							break;
-						default:
-							throwError('Parameter passed is invalid.');
+						} else if(ss){
+							return ss;
+						} else {
 							return undefined;
-							break;
+						}
 					}
-				} else if(type === 'session'){
-					switch($.type(keys)){
-						case 'array':
-							var tempObj = {};
-							
-							for(var i = 0,len = keys.length; i < len; i++){
-								tempObj[keys[i]] = tempStorage[keys[i]];
-							}
-							
-							return tempObj;
-							
-							break;
-						case 'string':
-							return tempStorage[keys];
-							
-							break;
-						case 'undefined':							
-							return tempStorage;
-							
-							break;
-						default:
-							throwError('Parameter passed is invalid.');
-							return undefined;
-							break;
-					}
+				} else if(type){
+					return webStorage[type];
+				} else {
+					return webStorage;
 				}
 			}
 			
-			function prv_localStorage(args){
-				switch(args.length){
-					case 0:
-						return prv_getStorage('local');
-						
-						break;
-					case 1:
-						if($.type(args[0]) === 'object'){
-							setStorage(true,args[0]);
+			function prv_setStorage(name,value,type){
+				type = (type || 'session');
+				
+				if(name && value){
+					var jsonVal;
+					
+					if($.type(value) !== 'string'){
+						value = JSON.stringify(value);
+					}
+					
+					if(type === 'local'){
+						setStorage.local(name,(jsonVal || value));
+					} else if(type === 'session') {
+						setStorage.session(name,(jsonVal || value));
+					}
+				} else {
+					throw new Error('Must pass name and value of storage item to assign.');
+				}
+			}
+			
+			function prv_removeStorage(name,type){
+				if(name){
+					if(type){
+						if(type === 'local'){
+							removeStorage['local'](name);
 						} else {
-							return prv_getStorage('local',args[0]);
+							removeStorage['session'](name);
+						}
+					} else {
+						removeStorage['local'](name);
+						removeStorage['session'](name)
+					}
+				} else {
+					if(type){
+						if(type === 'local'){
+							for(var key in webStorage['local']){
+								removeStorage['local'](key);
+							}
+						} else if(type === 'session'){
+							for(var key in webStorage['session']){
+								removeStorage['session'](key);
+							}
+						}
+					} else {
+						for(var key in webStorage['local']){
+							removeStorage['local'](key);
 						}
 						
-						break;
-					case 2:
-						setStorage(true,args[0],args[1]);
-						
-						break;
-					default:
-						throwError('Parameter passed is not a valid type.');
-						
-						break;
-				}
-			}
-			
-			function prv_sessionStorage(args){
-				switch(args.length){
-					case 0:
-						return prv_getStorage('session');
-						
-						break;
-					case 1:
-						if($.type(args[0]) === 'object'){
-							setStorage(false,args[0]);
-						} else {
-							return prv_getStorage('session',args[0]);
+						for(var key in webStorage['session']){
+							removeStorage['session'](key);
 						}
-						
-						break;
-					case 2:
-						setStorage(false,args[0],args[1]);
-						
-						break;
-					default:
-						throwError('Parameter passed is not a valid type.');
-						
-						break;
+					}
 				}
 			}
 			
-			function prv_removeStorage(args){
-				switch(args.length){
-					case 0:
-						window.localStorage.clear();
-						window.sessionStorage.clear();
-						
-						permStorage = tempStorage = {};
-						
-						break;
-					case 1:
-						switch($.type(args[0])){
+			function pub_getStorage(obj,type){
+				switch($.type(obj)){
+					case 'object':
+						switch($.type(obj.data)){
 							case 'string':
+								return prv_getStorage(obj.data,(obj.type || type));
+								
+								break;
 							case 'array':
-								removeStorage(true,args[0]);
-								removeStorage(false,args[0]);
-								
-								break;
-							case 'object':
-								if($.type(args[0].type) === 'undefined'){
-										removeStorage(true,args[0].keys);
-										removeStorage(false,args[0].keys);
-								} else {
-									switch(args[0].type){
-										case 'local':
-											removeStorage(true,args[0].keys);
-											break;
-										case 'session':
-											removeStorage(false,args[0].keys);
-											break;
-										default:
-											throwError('Invalid value for storage type.');
-											break;
-									}
+								var keyObj = {};
+							
+								for(var i = 0, len = obj.data.length; i < len; i++){
+									keyObj[obj.data[i]] = prv_getStorage(obj.data[i],(obj.type || type));
 								}
-						}
-						
-						break;
-					case 2:
-						switch(args[1]){
-							case 'local':
-								removeStorage(true,args[0]);
 								
-								break;
-							case 'session':
-								removeStorage(false,args[0]);
+								return keyObj;
 								
 								break;
 							default:
-								removeStorage(true,args[0]);
-								removeStorage(false,args[0]);
+								throw new Error('Invalid type passed to get, must be either an array or a string.');
 								
 								break;
 						}
 						
 						break;
+					case 'array':
+						var keyObj = {};
+						
+						for(var i = 0, len = obj.length; i < len; i++){
+							keyObj[obj[i]] = prv_getStorage(obj[i],type);
+						}
+						
+						return keyObj;
+						
+						break;
+					case 'string':
+						switch(obj){
+							case 'local':
+							case 'session':
+								return webStorage[obj];
+								
+								break;
+							default:
+								return prv_getStorage(obj,type);
+								
+								break;
+						}
+								
+						break;
+					case 'undefined':
+						return webStorage;
+						
+						break;
+					default:
+						throw new Error('Invalid type passed to get, must be either an array or a string.');
+						
+						break;
 				}
 			}
 			
-			return {
-				local:prv_localStorage,
-				remove:prv_removeStorage,
-				session:prv_sessionStorage
+			function pub_setStorage(obj,value,type){		
+				switch($.type(obj)){
+					case 'object':
+						if($.type(obj.data) === 'object'){
+							for(var key in obj.data){
+								return prv_setStorage(key,obj.data[key],obj.type);
+							}
+						} else {
+							throw new Error('Invalid type passed to data, must be an object.');
+						}
+						
+						break;
+					case 'string':
+						return prv_setStorage(obj,value,type);
+						
+						break;
+					default:
+						throw new Error('Invalid type passed to set, must be either an object (for multiple keys) or a string (for a single key).');
+						
+						break;
+						
+				}
+			}
+			
+			function pub_removeStorage(obj,type){
+				switch($.type(obj)){
+					case 'object':
+						switch($.type(obj.data)){
+							case 'string':
+								prv_removeStorage(obj.data,(obj.type || type));
+								
+								break;
+							case 'array':
+								for(var i = 0, len = obj.data.length; i < len; i++){
+									prv_removeStorage(obj.data[i],(obj.type || type));
+								}
+								
+								break;
+							default:
+								throw new Error('Invalid type passed to get, must be either an array or a string.');
+								
+								break;
+						}
+						
+						break;
+					case 'array':
+						for(var i = 0, len = obj.length; i < len; i++){
+							prv_removeStorage(obj[i],type);
+						}
+						
+						break;
+					case 'string':
+						switch(obj){
+							case 'local':
+							case 'session':
+								for(var key in webStorage[obj]){
+									prv_removeStorage(key);
+								}
+								
+								break;
+							default:
+								prv_removeStorage(obj,type);
+								
+								break;
+						}
+						
+						break;
+					case 'undefined':
+						for(var key in webStorage['local']){
+							prv_removeStorage(key);
+						}
+						
+						for(var key in webStorage['session']){
+							prv_removeStorage(key);
+						}
+						
+						break;
+					default:
+						throw new Error('Invalid type passed to remove, must be either an object or array (for multiple keys), or a string (for a single key).');
+						
+						break;
+						
+				}
+			}
+			
+			instance = {
+				get:pub_getStorage,
+				remove:pub_removeStorage,
+				set:pub_setStorage
 			};
+			
+			$.extend({
+				storage:function(){
+					var args = Array.prototype.slice.call(arguments),
+						fn = args.shift();
+					
+					if(fn){
+						instance[fn](args);
+					} else {
+						return instance;
+					}
+				}
+			});
 		})(),
 		// build module for $.pledge() and $.postpone()
 		pledge = (function(){
@@ -2147,41 +2164,6 @@
 		})(),
 		// functions to help internally
 		helpFuncs = {
-			// return complete bounding rect of element
-			clientRect:(function(){
-				if(supports.getBoundingClientRect()){
-					return function($self){
-						var rect = $self[0].getBoundingClientRect();
-						
-						return {
-							bottom:Math.round(rect.bottom),
-							height:Math.round(rect.height || (rect.bottom - rect.top)),
-							left:Math.round(rect.left),
-							right:Math.round(rect.right),
-							top:Math.round(rect.top),
-							width:Math.round(rect.width || (rect.right - rect.left))					
-						};
-					};
-				} else {
-					return function($self){
-						var $first = $self.eq(0),
-							first = $first[0],
-							h = Math.max(first.scrollHeight,first.offsetHeight,first.clientHeight),
-							w = Math.max(first.scrollWidth,first.offsetWidth,first.clientWidth),
-							offset = $first.offset(),
-							body = document.body;
-					
-						return {
-							bottom:Math.round((offset.top - body.scrollTop) + h),
-							height:Math.round(h),
-							left:Math.round(offset.left - body.scrollLeft),
-							right:Math.round((offset.left - body.scrollLeft) + w),
-							top:Math.round(offset.top - body.scrollTop),
-							width:Math.round(w)
-						};
-					};
-				}
-			})(),
 			// perform preload of images
 			loadImg:function(self,i,len,callback){
 				if($.type(callback) === 'function'){
@@ -2312,57 +2294,13 @@
 					.addClass(cls);
 			}
 		},
-		// get the clientRect of the first element in the object
-		boundingBox:function(attr){
-			if(attr){
-				var ret;
-				
-				switch($.type(attr)){
-					case 'string':
-						ret = helpFuncs.clientRect(this)[attr];
-						
-						break;
-					case 'array':
-						ret = {}
-						
-						for(var i = 0, len = attr.length; i < len; i++){
-							ret[attr[i]] = helpFuncs.clientRect(this)[attr[i]];
-						}
-						
-						break;
-					default:
-						ret = undefined;
-						
-						break;
-				}
-				
-				return ret;
-			} else {
-				return helpFuncs.clientRect(this);
-			}
-		},
 		// filter objects by their data attributes
-		dataFilter:function(keys,val){
-			if($.type(keys) === 'object'){
-				return this.filter(function(){
-					var data = $(this).data(),
-						match;
-					
-					for(var key in keys){
-						match = (data.hasOwnProperty(key) && (data[key] === keys[key]));
-						
-						if(!match){
-							break;
-						}
-					}
-					
-					return match;
-				});
-			} else {
-				return this.filter(function(){
-					return ($(this).data(keys) === val);
-				});
-			}
+		dataFilter:function(key,value){
+			var $self = this;
+			
+			return $self.filter(function(i){
+				return ($self[i].data(key) === value);
+			});
 		},
 		// set object elements to "inactive" based on class and parent passed or default
 		deactivate:function(cls,parent){
@@ -2402,11 +2340,11 @@
 		},
 		// retrieve naturalHeight of first element in object
 		naturalHeight:function(){
-			return helpFuncs.naturalDimensions.height(this[0]);
+			return helpFuncs.naturalDimensions.height(this.get(0));
 		},
 		// retrieve naturalWidth of first element in object
 		naturalWidth:function(){
-			return helpFuncs.naturalDimensions.width(this[0]);
+			return helpFuncs.naturalDimensions.width(this.get(0));
 		},
 		/*
 		 * make all elements in object, and all children, unseletable
