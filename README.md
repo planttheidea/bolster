@@ -9,27 +9,37 @@ jQuery is a wonderful, magical, omnipresent library that makes the lives of most
 
 ### Size
 
-+ Uncompressed: 61.51KB
-+ Minified: 23.08KB
-+ Minified and gzipped: 7.15KB
++ Core
+  + Uncompressed: 42.55KB
+  + Minified: 15.41KB
+  + Minified and gzipped: 5.06KB
++ Full
+  + Uncompressed: 61.31KB
+  + Minified: 22.93KB
+  + Minified and gzipped: 7.12KB
 
 ### Components
 
+**Core**
 + $ methods
   + Publish / Subscribe
   + Feature detection
   + Window attributes
   + Document attributes
-  + Promises / deferreds
-  + localStorage / sessionStorage with cookie fallback
 + $(selector) methods
   + Setting / removing / detecting "active" elements
   + Completion of image loading
-  + Getting the bounding client rectangle for the element
   + Filtering objects by data key / value matches
-  + Getting natural width / height of image
   + Setting attributes to not be selectable
   + Removing inline styling
+
+**Full**
++ $ methods (in addition to those in Core)
+  + Promises / deferreds
+  + localStorage / sessionStorage with cookie fallback
++ $(selector) methods (in addition to those in Core)
+  + Getting the bounding client rectangle for the element
+  + Getting natural width / height of image
 
 ### $ Methods
 
