@@ -2419,12 +2419,27 @@
 			}
 		},
 		// filter objects by their data attributes
-		dataFilter:function(key,value){
-			var $self = this;
-			
-			return $self.filter(function(i){
-				return ($self[i].data(key) === value);
-			});
+		dataFilter:function(keys,value){
+			if($.type(keys) === 'object'){
+				return this.filter(function(){
+					var $data = $(this).data(),
+						match;
+					
+					for(var key in keys){
+						match = ($data.hasOwnProperty(key) && ($data[key] === keys[key]));
+						
+						if(!match){
+							break;
+						}
+					}
+					
+					return match;
+				});
+			} else {
+				return this.filter(function(){
+					return ($(this).data(keys) === val);
+				});
+			}
 		},
 		// set object elements to "inactive" based on class and parent passed or default
 		deactivate:function(cls,parent){
