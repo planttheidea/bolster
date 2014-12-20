@@ -2337,17 +2337,8 @@
 				return doc.document();
 			}
 		},
-		localStorage:function(){
-			return storage.local(arguments);
-		},
 		publish:function(publishObj){
 			return pubsub.publish(publishObj);
-		},
-		removeStorage:function(){
-			return storage.remove(arguments);
-		},
-		sessionStorage:function(){
-			return storage.session(arguments);
 		},
 		subscribe:function(subscribeObj){
 			return pubsub.subscribe(subscribeObj);
