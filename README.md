@@ -23,23 +23,42 @@ jQuery is a wonderful, magical, omnipresent library that makes the lives of most
 **Core**
 + $ methods
   + Publish / Subscribe
+    + $.publish()
+    + $.subscribe()
+    + $.unsubscribe()
   + Feature detection
+    + $.supports()
   + Window attributes
+    + $.window()
   + Document attributes
+    + $.document()
 + $(selector) methods
   + Setting / removing / detecting "active" elements
+    + $(selector).active()
+    + $(selector).activate()
+    + $(selector).deactivate()
   + Completion of image loading
+    + $(selector).imgLoad()
   + Filtering objects by data key / value matches
+    + $(selector).dataFilter()
   + Setting attributes to not be selectable
+    + $(selector).unselectable()
   + Removing inline styling
+    + $(selector).unstyle()
 
 **Full**
 + $ methods (in addition to those in Core)
   + Promises / deferreds
+    + $.pledge()
+    + $.postpone()
   + localStorage / sessionStorage with cookie fallback
+    + $.storage()
 + $(selector) methods (in addition to those in Core)
   + Getting the bounding client rectangle for the element
+    + $(selector).boundingBox()
   + Getting natural width / height of image
+    + $(selector).naturalWidth()
+    + $(selector).naturalHeight()
 
 ### $ Methods
 
